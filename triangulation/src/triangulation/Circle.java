@@ -6,12 +6,12 @@ package triangulation;
  * Circle - kruznica, opisana trojuholniku, ma stred S a polomer
  */
 public class Circle {
-    private float x;
-    private float y;
-    private float r;
+    private double x;
+    private double y;
+    private double  r;
     Point[] point_cloud;
 
-    Circle(float R, float circleX, float circleY) {
+    Circle(double R, double circleX, double circleY) {
         this.x = circleX;
         this.y = circleY;
         this.r = R;
@@ -21,12 +21,12 @@ public class Circle {
      * metoda na urcenie ci dany bod je vo vnutri kruznice
      */
     public boolean isInside(Point p) {
-        Float a = this.distance(p);
-        a=round(a,4);
-        Float b = this.getR();
-        b=round(b,4);
+        Double a = this.distance(p);
+        a=round(a,4);   //zaokruhlime na 4 desatinne cisla
+        Double b = this.getR();
+        b=round(b,4);  //zaokruhlime --//--
 	if (0 > a.compareTo(b)){
-             System.out.println("/"+a+"_"+b+" "+(0 > a.compareTo(b)));
+             System.out.println("/"+a+"_<_"+b+" "+(0 > a.compareTo(b)));
 //	if (this.distance(p) < this.getR() )
 //if (0 >= dist.compareTo(dist_last)) {
 	    return true;
@@ -38,33 +38,33 @@ public class Circle {
     /**
      * distance from STRED kruznice to Point A
      */
-    private float distance(Point a) {
-        float dx, dy;
+    public double distance(Point a) {
+        double dx, dy;
 
         dx = a.getX() - this.getX();
         dy = a.getY() - this.getY();
-        //System.out.println((float)Math.sqrt((double)(dx * dx + dy * dy)));
-        return (float) Math.sqrt((double) (dx * dx + dy * dy));
+        //System.out.println((double)Math.sqrt((double)(dx * dx + dy * dy)));
+        return Math.sqrt((double) (dx * dx + dy * dy));
     }
 
     /**
      * @return the x
      */
-    public float getX() {
+    public double getX() {
         return x;
     }
 
     /**
      * @return the y
      */
-    public float getY() {
+    public double getY() {
         return y;
     }
 
     /**
      * @return the r
      */
-    public float getR() {
+    public double getR() {
         return r;
     }
 
@@ -86,11 +86,11 @@ public class Circle {
  * @param Rpl
  * @return
  */
-    private Float round(Float Rval, int Rpl) {
-        float p = (float) Math.pow(10, Rpl);
+    private Double round(Double Rval, int Rpl) {
+        double p =  Math.pow(10, Rpl);
         Rval = Rval * p;
-        float tmp = Math.round(Rval);
-        return (float) tmp / p;
+        double tmp = Math.round(Rval);
+        return  tmp / p;
     }
 
 

@@ -85,7 +85,7 @@ public class Triangulate {
     }
 
     /*
-     * Generates a set of random points to triangulate.
+     * Generates a set of random points to triangulate, nums from 0.0 to 100.0.
      */
     private void getRandomPoints(int amount) {
 //        point_cloud[0] = new Point(0,1,1);
@@ -111,7 +111,7 @@ public class Triangulate {
 //        point_cloud[9] = new Point(9,40,10);
 
         for (int i = 0; i < point_cloud.length; i++) {
-            point_cloud[i] = new Point(i, (int) (Math.random() * Math.random() * 100), (int) (Math.random() * Math.random() * 100));
+            point_cloud[i] = new Point(i, /*(int)*/ round((Math.random() * Math.random() * 100),4), /*(int)*/ round((Math.random() * Math.random() * 100),4));
         }
 
     }
@@ -129,8 +129,8 @@ public class Triangulate {
      */
     private void firstTriangle(int startPointID) {
         point_cloud[startPointID].setUsed();
-        Float dist = new Float(0);
-        Float dist_last = Float.MAX_VALUE;
+        Double dist = new Double(0);
+        Double dist_last = Double.MAX_VALUE;
         int point2 = 0;
         int point3 = 0;
         int y = 0;
@@ -161,7 +161,7 @@ public class Triangulate {
         point_cloud[point2].setUsed();
         //edges[0].setUsed();
 //-----------------teraz druha hrana----------------------------------------
-        dist_last = Float.MAX_VALUE;
+        dist_last = Double.MAX_VALUE;
 
         for (int i = 0; i < point_cloud.length; i++) {
             if (!(point_cloud[i].isUsed())) {     //vsetky okrem prveho vybrateho
@@ -206,7 +206,7 @@ last[y++] = bool;
                 bool = circleHasPoint(point_cloud[startPointID], point_cloud[point2], point_cloud[point3]);
                 //TODO: osetrit ak su rovnako blizko --->> ze ak su na jednej kruznici -->> hrozi zacyklenie.
             }
-        System.out.println("-------------------------");
+        System.out.println("----------koniec prveho 3uholnika---------------");
         
         
         makeEdge(1, point_cloud[startPointID], point_cloud[point3]);
@@ -218,44 +218,110 @@ last[y++] = bool;
 
 
 //------------------------------------------------------------------------------
-    /*
+    /**
      * samotna triangulacia
      */
     private void triangulate() {
+        int stat;
+        int k = 3;
         
-        
-
-        
-        
+        for (int i = 0; i < edges.length; i++) {
+            for (int j = 0; j < point_cloud.length; j++) {
+//                stat = solve(i,j);
+                stat = solve1(i,j);
+                if (point_cloud[j].isUsed()) {
+//TODO: kontrola ci existuju hrany k tomuto bodu,ked hej tak nic nerobim, a ked len jedna tak makeEdge druha hrana /a opacne
+                }else{
+                    makeEdge(k++, edges[i].l, point_cloud[j]);
+                    makeEdge(k++, edges[i].r, point_cloud[j]);  
+                }
+            }
+        }
     }
 
     /**
-     * distance from A to B
-     * return float
+     *
+     * @param i
+     * @param j
+     * @return y - dalsi kandidat
      */
-    public float distance(Point a, Point b) {
-        float dx, dy;
+    private int solve(int i, int j) {
+// -->> stat =   // until stat != -1 AND !p_c(stat).IsUsed
+        int y;
+        
+        if (j == -1) {
+            return j;
+        } else {
+            y = j;
+            j = circleHasPoint(edges[i].l, edges[i].r, point_cloud[j]);  //vrati bod vo vnutri opisanej kruznice tymito tromi bodmi
+            System.out.println("solve->"+j);
+            solve(i, j);
+            return y;
+        }
+    }
+
+    /**
+     * nahrada za povodny solve
+     * @param i
+     * @param j
+     * @return vrati dalsieho najlepsieho kandidata
+     */
+        private int solve1(int i, int j) {
+        int bool = circleHasPoint(edges[i].l, edges[i].r, point_cloud[j]);
+        if (bool == -1) {
+            return j;
+        }
+        int[] last = new int[5];
+        int y = 0;
+        int z = 0; // aktivator kontroly zacyklenia
+
+        while (bool != -1) {   //rekurzia ci nema opisana kruznica este dalsie body v sebe
+            z++;
+            if (z >= 5) {if (last[y - 1] == bool || last[y - 2] == bool || last[y - 3] == bool || last[y - 4] == bool)
+                    break;
+            }
+            
+            last[y++] = bool;
+            if (y == 4) y = 0;
+            
+
+            j = bool;
+            bool = circleHasPoint(edges[i].l, edges[i].r, point_cloud[j]);
+        }
+        return j;
+    }
+
+
+
+    
+
+    /**
+     * distance from A to B
+     * return double
+     */
+    public double distance(Point a, Point b) {
+        double dx, dy;
 
         dx = a.getX() - b.getX();
         dy = a.getY() - b.getY();
-        //System.out.println((float)Math.sqrt((double)(dx * dx + dy * dy)));
-        return (float) Math.sqrt((double) (dx * dx + dy * dy));
+        //System.out.println((double)Math.sqrt((double)(dx * dx + dy * dy)));
+        return (double) Math.sqrt((double) (dx * dx + dy * dy));
     }
 
     /**
      * distance from EDGE
      */
-    public float distanceFromEdge(Edge e, Point b) {
-        float dx, dy;
-        float x, y;
+    public double distanceFromEdge(Edge e, Point b) {
+        double dx, dy;
+        double x, y;
 
         x = (e.l.getX() + e.r.getX()) / 2;
         y = (e.l.getY() + e.r.getY()) / 2;
 
         dx = x - b.getX();
         dy = y - b.getY();
-        //System.out.println((float)Math.sqrt((double)(dx * dx + dy * dy)));
-        return (float) Math.sqrt((double) (dx * dx + dy * dy));
+        //System.out.println((double)Math.sqrt((double)(dx * dx + dy * dy)));
+        return (double) Math.sqrt((double) (dx * dx + dy * dy));
     }
 
     /*
@@ -267,7 +333,7 @@ last[y++] = bool;
     private void makeEdge(int i, Point left, Point right) {
         edges[i] = new Edge(left, right);
 
-        float x, y;
+        double x, y;
         x = (left.getX() + right.getX()) / 2;
         y = (left.getY() + right.getY()) / 2;
         Point s = new Point((int) x, (int) y);
@@ -277,43 +343,40 @@ last[y++] = bool;
     /*
      * delaunay circumcircle,
      * input 3 body ,
-     * return je najblizsi kandidat ak existuje vo vnutri opisanej kruznice.
+     * return je dalsi (nejaky) kandidat, ak existuje vo vnutri opisanej kruznice.
+     * inak vrati -1
      */
     private int circleHasPoint(Point a, Point b, Point c) {
         // TODO: code DELAUNAY circumcircle right here !!!
         Circle cc = circumcircle(a, b, c);
-        
+               
         for (int i = 0; i < point_cloud.length; i++) {
-            if (i == a.getID() || i == b.getID() || i == c.getID() ) {}
-            else{
-//                if (!(point_cloud[i].isUsed())) {
-//                if (true) {
-                    if (cc.isInside(point_cloud[i])) {
-//                        if (cc.isEmpty(point_cloud,i)) {
-//                            return i;
-//                        } else {
-//                            circleHasPoint(a, b, point_cloud[i]); //zacykli sa ak chyti 2 body na tej istej kruznici
-                            return i;
-//                        }
-//                    }
+            if (i == a.getID() || i == b.getID() || i == c.getID() ) {} //do nothing
+            else {
+                if (cc.isInside(point_cloud[i])) {
+                    return i;
                 }
             }
-        } return -1;
+        } 
+        return - 1; //ked nie je vo vnutri 3uholnika dalsi bod
     }
-
+    
+    
+    
+    
     /*
      * Compute the circle defined by three points (circumcircle).
      */
     private Circle circumcircle(Point p1,Point p2,Point p3) {
-	float premenna;
-        float circleX, circleY;
+	double premenna;
+        double circleX, circleY;
         circleX = circleY = 0;
 
 	premenna = crossProduct(p1, p2, p3);
 	if (premenna != 0.0)
 	    {
-                float p1Sq, p2Sq, p3Sq;
-                float num, den;
+                double p1Sq, p2Sq, p3Sq;
+                double num, den;
 
 		p1Sq = p1.getX() * p1.getX() + p1.getY() * p1.getY();
 		p2Sq = p2.getX() * p2.getX() + p2.getY() * p2.getY();
@@ -330,13 +393,13 @@ last[y++] = bool;
 	// Radius
 	//r = c.distance(p1);
         circlesA.add(new Circle(premenna,circleX,circleY)); //adding value to ArrayList
-        System.out.print(".");
+        System.out.print("ň");
         return new Circle(premenna,circleX,circleY);
     
     }
 
-    static float crossProduct(Point p1, Point p2, Point p3) {
-	float u1, v1, u2, v2;
+    static double crossProduct(Point p1, Point p2, Point p3) {
+	double u1, v1, u2, v2;
 
 	u1 =  p2.getX() - p1.getX();
 	v1 =  p2.getY() - p1.getY();
@@ -369,6 +432,20 @@ last[y++] = bool;
 //        }
         return i;
     }
+
+    /**
+ * zaokruhlenie na pozadovany pocet des miest
+ * @param Rval  - jake cislo
+ * @param Rpl   - na kolko des. miest
+ * @return
+ */
+    private Double round(Double Rval, int Rpl) {
+        double p =  Math.pow(10, Rpl);
+        Rval = Rval * p;
+        double tmp = Math.round(Rval);
+        return  tmp / p;
+    }
+
 }
 
 
@@ -391,8 +468,8 @@ last[y++] = bool;
 
 //
 //        // edge startujeme pocitat od 3
-//        Float dist = new Float(0);
-//        Float dist_last = Float.MAX_VALUE;
+//        Double dist = new Double(0);
+//        Double dist_last = Double.MAX_VALUE;
 //        int point = 0;
 //        int edge = 0;
 //        int y = 0;
@@ -406,7 +483,7 @@ last[y++] = bool;
 //
 //
 //        for (int k = 3; k < edges.length; k++) {
-//            dist_last = Float.MAX_VALUE;
+//            dist_last = Double.MAX_VALUE;
 //            //for ( y = 0; y < edges.length; y++) {
 //
 //            y=0;

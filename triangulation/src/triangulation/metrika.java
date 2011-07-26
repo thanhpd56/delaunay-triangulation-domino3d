@@ -8,21 +8,21 @@ import java.util.Arrays;
  * @author Domino
  */
 public class metrika {
-    private float result;
+    private double result;
     private int amount;
     Point[] point_cloud;
-    float[] cloud;
+    double[] cloud;
 
 
     public metrika(Point[] point_cloud, int amount) {
         this.point_cloud=point_cloud;
         this.amount=amount;
-        cloud = new float[amount];
+        cloud = new double[amount];
     }
 
     int getPoint() {
-        Float tmp = new Float(0);
-        Float dist_last = Float.MAX_VALUE;
+        Double tmp = new Double(0);
+        Double dist_last = Double.MAX_VALUE;
 
         for (int i = 0; i < amount; i++) {
             for (int j = 0; j < amount; j++) {
@@ -37,10 +37,11 @@ public class metrika {
                 result = result + cloud[k];
             }result = round(result / cloud.length,4);
 
+//priradime do mracna kazdemu bodu jeho metriku ! :-)
             point_cloud[i].setMin(dist_last);
             point_cloud[i].setAvg(result);
 //  System.out.println(i+"_"+dist_last+" "+result);
-            dist_last = Float.MAX_VALUE;
+            dist_last = Double.MAX_VALUE;
         }
 
         
@@ -68,15 +69,15 @@ public class metrika {
 
     /**
      * distance from A to B
-     * return float
+     * return double
      */
-    public float distance(Point a, Point b) {
-        float dx, dy;
+    public double distance(Point a, Point b) {
+        double dx, dy;
 
         dx = a.getX() - b.getX();
         dy = a.getY() - b.getY();
         //System.out.println((float)Math.sqrt((double)(dx * dx + dy * dy)));
-        return round((float) Math.sqrt((double) (dx * dx + dy * dy)),4);
+        return round( Math.sqrt((double) (dx * dx + dy * dy)),4);
     }
 
     /**
@@ -85,11 +86,11 @@ public class metrika {
      * @param Rpl
      * @return
      */
-    private Float round(Float Rval, int Rpl) {
-        float p = (float) Math.pow(10, Rpl);
+    private Double round(Double Rval, int Rpl) {
+        double p = Math.pow(10, Rpl);
         Rval = Rval * p;
-        float tmp = Math.round(Rval);
-        return (float) tmp / p;
+        double tmp = Math.round(Rval);
+        return  tmp / p;
     }
 
 }

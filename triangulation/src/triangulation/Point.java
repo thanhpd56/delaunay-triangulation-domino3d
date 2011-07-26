@@ -11,20 +11,21 @@ public class Point implements Comparable{
 //    private int x;
 //    private int y;
 //real
-    private float x;
-    private float y;
+    private double  x;
+    private double  y;
 //metrika
-    private float min;
-    private float avg;
+    private double min;
+    private double avg;
 
     private boolean used = false;
 
-    public Point(int ID,float x,float y){
+    //public Point(int ID,float x,float y){
+    public Point(int ID,double x, double y){
         this.ID=ID;
         this.x=x;
         this.y=y;
     }
-    public Point(float x,float y){
+    public Point(double x,double y){
         this.x=x;
         this.y=y;
     }
@@ -34,8 +35,8 @@ public class Point implements Comparable{
      * @return
      */
     public int compareTo(Object obj) {
-        Float a = new Float(0);
-        Float b = new Float(0);
+        Double a = new Double(0);
+        Double b = new Double(0);
 
         Point tmp = (Point) obj;
         a=this.min;
@@ -67,14 +68,14 @@ public class Point implements Comparable{
         this.ID = ID;
     }
 //get set X
-    public float getX() {
+    public double  getX() {
         return x;
     }
     public void setX(int x) {
         this.x = x;
     }
 //get set Y
-    public float getY() {
+    public double  getY() {
         return y;
     }
     public void setY(int y) {
@@ -90,34 +91,34 @@ public class Point implements Comparable{
     }
 //to string
     public String toString (){
-        return "point: "+ID+","+x+","+y+","+isUsed();
+        return "Point: "+ID+","+x+","+y+","+isUsed();
     }
 
     /**
      * @return the min
      */
-    public float getMin() {
+    public double getMin() {
         return min;
     }
 
     /**
      * @param min the min to set
      */
-    public void setMin(float min) {
+    public void setMin(double min) {
         this.min = min;
     }
 
     /**
      * @return the avg
      */
-    public float getAvg() {
+    public double getAvg() {
         return avg;
     }
 
     /**
      * @param avg the avg to set
      */
-    public void setAvg(float avg) {
+    public void setAvg(double avg) {
         this.avg = avg;
     }
 
