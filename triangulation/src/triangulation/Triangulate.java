@@ -239,6 +239,7 @@ last[y++] = bool;
         }
     }
 
+
     /**
      *
      * @param i
@@ -261,7 +262,7 @@ last[y++] = bool;
     }
 
     /**
-     * nahrada za povodny solve
+     * nahrada za povodny solve, rozdiel je v tom, ze ...
      * @param i
      * @param j
      * @return vrati dalsieho najlepsieho kandidata
