@@ -23,6 +23,7 @@ public class metrika {
     int getPoint() {
         Double tmp = new Double(0);
         Double dist_last = Double.MAX_VALUE;
+        int optimal = 0;
 
         for (int i = 0; i < amount; i++) {
             for (int j = 0; j < amount; j++) {
@@ -40,12 +41,20 @@ public class metrika {
 //priradime do mracna kazdemu bodu jeho metriku ! :-)
             point_cloud[i].setMin(dist_last);
             point_cloud[i].setAvg(result);
-//  System.out.println(i+"_"+dist_last+" "+result);
+  System.out.println(i+"_"+dist_last+" "+result);
             dist_last = Double.MAX_VALUE;
         }
 
+//teraz vyberiem najvhodnejsi prvok  >> podla parametra PRIEMERNEJ vzdialenosti // da sa zmenit
+        dist_last = Double.MAX_VALUE;
+        for (int i = 0; i < amount; i++) {
+            if (dist_last >= (point_cloud[i].getAvg())) {
+                dist_last = (point_cloud[i].getAvg());
+                optimal = i;
+            }
+        }
         
-        return 0;
+        return optimal;
     }
 /**
  * SORT

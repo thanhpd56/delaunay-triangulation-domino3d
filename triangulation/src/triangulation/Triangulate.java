@@ -16,11 +16,11 @@ import java.util.Random;
  */
 public class Triangulate {
 
-    public int amount = 20; //kolko bodov chcem v poli
+    public int amount = 10; //kolko bodov chcem/mam v poli
     public Point[] point_cloud = new Point[amount];  //array of points2d  // ID, X, Y, used(bool)
-    public Edge[] edges = new Edge[30 * amount - 3];  //array of edges, hran je len tolko kolko je teoreticky nekonvexnych hran //akbyze potrebujeme konvexne hrany rozmyslat -> je potrebne zvysit kapacitu pola, o neviem kolko :) (pripadne vyrobit druhe pole urcene len an tieto hrany)
+/*zle*/    public Edge[] edges = new Edge[30 * amount - 3];  //array of edges, hran je len tolko kolko je teoreticky nekonvexnych hran //akbyze potrebujeme konvexne hrany rozmyslat -> je potrebne zvysit kapacitu pola, o neviem kolko :) (pripadne vyrobit druhe pole urcene len an tieto hrany)
     public Edge[] convex = new Edge[100];  //array of edges, hrany konvexne
-    //public Edge[] edges = new Edge[100];  //array of edges, hran je len tolko kolko je teoreticky nekonvexnych hran //akbyze potrebujeme konvexne hrany rozmyslat -> je potrebne zvysit kapacitu pola, o neviem kolko :) (pripadne vyrobit druhy LIST urceny len na tieto hrany)
+/*zle*/    //public Edge[] edges = new Edge[100];  //array of edges, hran je len tolko kolko je teoreticky nekonvexnych hran //akbyze potrebujeme konvexne hrany rozmyslat -> je potrebne zvysit kapacitu pola, o neviem kolko :) (pripadne vyrobit druhy LIST urceny len na tieto hrany)
     public Circle[] circles = new Circle[amount];
     ArrayList<Circle> circlesA = new ArrayList<Circle>();
     ArrayList<Edge> convexA = new ArrayList<Edge>();
@@ -38,12 +38,12 @@ public class Triangulate {
         Triangulate triangulate = new Triangulate();
 
     }
+    
     /*
      * samotne spustenie
      */
-
     public Triangulate() {
-        getRandomPoints(amount);  //neake mracno bodov v 2d
+        getRandomPoints(amount);  //neake nahodne mracno bodov v 2d
 //        for (int i = 0; i < point_cloud.length; i++) {
 //            System.out.println(point_cloud[i].toString()); //show points in point_cloud
 //        }
@@ -62,7 +62,8 @@ public class Triangulate {
         if (amount >= 3) {
             firstTriangle(startPointID);
         } else {
-            System.out.println("nedostatocny pocet bodov pre triangulaciu");
+            System.out.println("nedostatocny pocet bodov pre triangulaciu"); 
+            return ;  // ???
         }
 
         /* teraz treba hladat najblizsi bod k trojuhoniku
@@ -70,15 +71,15 @@ public class Triangulate {
         b - circumcircles
         c - spirala, pozerat +1 bod hore, dole, doprava...
          */
-        triangulate();  //ostatne 3uholniky
+//        triangulate();  //ostatne 3uholniky
         
-        //dokreslime konvexne trojuholniky
+        //dokreslime konvexne trojuholniky po krajoch (mozme, NEMUSIME)
         konvex();
 
         //opisana kruznica
         //circumcircle(Point p1,Point p2,Point p3);
         
-        //otvorime si okienko
+        //otvorime si okienko a nakreslim co to vlastne vyrobilo
         Show gui = new Show();
         gui.setVisible(true);
         gui.Kresli(point_cloud, edges, circlesA);
@@ -99,20 +100,20 @@ public class Triangulate {
 //        point_cloud[8] = new Point(8,18,16);
 //        point_cloud[9] = new Point(9,14,13);
 
-//        point_cloud[0] = new Point(0,10,10);
-//        point_cloud[1] = new Point(1,10,20);
-//        point_cloud[2] = new Point(2,10,30);
-//        point_cloud[3] = new Point(3,20,10);
-//        point_cloud[4] = new Point(4,20,20);
-//        point_cloud[5] = new Point(5,20,30);
-//        point_cloud[6] = new Point(6,30,10);
-//        point_cloud[7] = new Point(7,30,20);
-//        point_cloud[8] = new Point(8,30,30);
-//        point_cloud[9] = new Point(9,40,10);
+        point_cloud[0] = new Point(0,10,10);
+        point_cloud[1] = new Point(1,10,20);
+        point_cloud[2] = new Point(2,10,30);
+        point_cloud[3] = new Point(3,20,10);
+        point_cloud[4] = new Point(4,20,20);
+        point_cloud[5] = new Point(5,20,30);
+        point_cloud[6] = new Point(6,30,10);
+        point_cloud[7] = new Point(7,30,20);
+        point_cloud[8] = new Point(8,30,30);
+        point_cloud[9] = new Point(9,40,10);
 
-        for (int i = 0; i < point_cloud.length; i++) {
-            point_cloud[i] = new Point(i, /*(int)*/ round((Math.random() * Math.random() * 100),4), /*(int)*/ round((Math.random() * Math.random() * 100),4));
-        }
+//        for (int i = 0; i < point_cloud.length; i++) {
+//            point_cloud[i] = new Point(i, /*(int)*/ round((Math.random() * Math.random() * 100),4), /*(int)*/ round((Math.random() * Math.random() * 100),4));
+//        }
 
     }
 
@@ -128,27 +129,18 @@ public class Triangulate {
      * make first triangle
      */
     private void firstTriangle(int startPointID) {
-        point_cloud[startPointID].setUsed();
+        point_cloud[startPointID].setUsed(); //nastavenia priznaku "zneuzitia" tohto bodu musi byt TU na zaciatku aby sme ho uz pri FORe nepouzili
         Double dist = new Double(0);
         Double dist_last = Double.MAX_VALUE;
         int point2 = 0;
         int point3 = 0;
-        int y = 0;
-        int[] last = new int[5];
+        int counter = 0;  //univerzalne pocitadlo, mozem recyklovat podla potreby !
 
-        for (int i = 0; i < point_cloud.length; i++) {
+        
+//----hladanie 2. bodu a 1. hrany---------
+        for (int i = 0; i < point_cloud.length; i++) { //porovname vsetky vzdialenosti bodov, prveho vybrateho so vsetkymi, a tak najdeme 2. bod trojuholnika
             if (!(point_cloud[i].isUsed())) {     //vsetky okrem prveho vybrateho //je pouzity? ak NIE pokracuj alg, Ak ANO
-                /*porovname vsetky vzdialenosti bodov*/
                 dist = distance(point_cloud[startPointID], point_cloud[i]);
-                //System.out.println(dist);
-                //System.out.print("->");
-                //System.out.println(dist.compareTo(dist_last));
-
-//               if ( i==1 ) {
-//                    dist_last = dist;
-//                    point2 = 1;
-//                }
-                //if (dist < dist_last) {
                 if (0 >= dist.compareTo(dist_last)) {
                     dist_last = dist;
                     point2 = i;
@@ -156,26 +148,19 @@ public class Triangulate {
             }
         }
         System.out.println("second point. distance: " + dist_last + ", point: " + point_cloud[point2].toString());
-//        makeEdge(0,startPointID,point2);
         makeEdge(0, point_cloud[startPointID], point_cloud[point2]);
         point_cloud[point2].setUsed();
         //edges[0].setUsed();
-//-----------------teraz druha hrana----------------------------------------
+        
+//-----hladanie 3. bodu a 2.+3. hrany------------------------------------
         dist_last = Double.MAX_VALUE;
 
         for (int i = 0; i < point_cloud.length; i++) {
             if (!(point_cloud[i].isUsed())) {     //vsetky okrem prveho vybrateho
-                /*porovname vsetky vzdialenosti bodov*/
+                //porovname vsetky vzdialenosti bodov od 2. bodu, MOZME hladat aj od STREDU KRUZNICE (ak chceme)!!!
                 dist = distanceFromEdge(edges[0], point_cloud[i]);
-                //System.out.println(dist);
-                //System.out.print("->");
-                //System.out.println(dist.compareTo(dist_last));
-//                if ( i==2) {
-//                    dist_last = dist;
-//                    point3 = 2;
-//                }
                 //if (dist < dist_last) {  // XXX pouzit ine porovnavanie
-                if (0 >= dist.compareTo(dist_last)) {  // XXX pouzit ine porovnavanie
+                if (0 >= dist.compareTo(dist_last)) {  
                     dist_last = dist;
                     point3 = i;
                 }
@@ -184,36 +169,40 @@ public class Triangulate {
         System.out.println("third point. distance from edge: " + dist_last + ", point: " + point_cloud[point3].toString());
         
         //TODO: doplnit delaunay circumCircles koli kontrole prekryvania hran
-        int bool = circleHasPoint(point_cloud[startPointID], point_cloud[point2], point_cloud[point3]);
-        while (bool != -1) { //totot tu sa musi opakovat lebo ak nie nenajde ESTE vhodnejsie one, tieto, vertexy :) uz nevladzem
-        //if (bool != -1) {
-
-                System.out.println("_"+point3+"_"+bool);
-//                System.out.println(last[y++]+"_"+point3+"_"+bool);
-                System.out.println("_");
-
-           
-////osetrenie podla poctu krokov
-//if(y++== 3 ) break;
-
-//osetrenie podla posledneho vyskytu
-if(y>=2) {if(last[y-2]==bool)break;}
-last[y++] = bool;
-
-
-                point3 = bool;
-                System.out.println("!!repaired!!point!!. distance from edge: " + dist_last + ", point: " + point_cloud[point3].toString());
-                bool = circleHasPoint(point_cloud[startPointID], point_cloud[point2], point_cloud[point3]);
-                //TODO: osetrit ak su rovnako blizko --->> ze ak su na jednej kruznici -->> hrozi zacyklenie.
+        int xxx = circleHasPoint(point_cloud[startPointID], point_cloud[point2], point_cloud[point3]);
+        
+        if (xxx != -1) {
+            int yyy = -1;
+            ArrayList invalid = new ArrayList(); // declares an array of integers        
+            
+            while (xxx != -1) {
+                if (yyy == -1) {
+                    invalid.add(point3);
+                } else {
+                    invalid.add(yyy);   //nastane len raz.
+                }
+                if (invalid.contains(xxx)) {
+                    System.out.println("break!");
+                    break;
+                } else {
+                    yyy = xxx;
+                    xxx = circleHasPoint(point_cloud[startPointID], point_cloud[point2], point_cloud[xxx]);
+                    System.out.println("navstivil som " + yyy + ", novy je " + xxx);
+                }
             }
+            
+            if (xxx == -1) {   // ak sme nasli nieco vhodnejsie tak to dame do POINT3
+                point3 = yyy;
+                System.out.println("oprava");
+            }
+        }
+        
         System.out.println("----------koniec prveho 3uholnika---------------");
         
         
         makeEdge(1, point_cloud[startPointID], point_cloud[point3]);
         makeEdge(2, point_cloud[point2], point_cloud[point3]);
         point_cloud[point3].setUsed();
-        //edges[1].setUsed();
-        //edges[2].setUsed();
     }
 
 
@@ -426,7 +415,8 @@ last[y++] = bool;
         int i = m.getPoint();
 //zorad pole podla ... toho co je v      public int compareTo(Object obj) {
         if (parameter==1) {
-            point_cloud = m.sort();   
+            point_cloud = m.sort();
+            return 0;  //najvyhodnejsi je navrchu, preto netreba nam uz pouzit ret i;
         }
 //        for (int t = 0; t < point_cloud.length; t++) {
 //            System.out.println(">>"+point_cloud[t].getID()+">>"+point_cloud[t].getMin());

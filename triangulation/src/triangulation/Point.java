@@ -31,7 +31,7 @@ public class Point implements Comparable{
     }
 
     /**
-     * compareTo
+     * compareTo, na zaklade tohto porovnava pointy, mozme zmenit sposob ci podla MINIMA alebo PRIEMERU bude porovnavat >>> this.min; sa zmeni na this.avg
      * @return
      */
     public int compareTo(Object obj) {
@@ -39,8 +39,8 @@ public class Point implements Comparable{
         Double b = new Double(0);
 
         Point tmp = (Point) obj;
-        a=this.min;
-        b=tmp.min;
+        a=this.avg;
+        b=tmp.avg;
 
         if (0 >= a.compareTo(b)) {
 //        if (this.min < tmp.min) {
