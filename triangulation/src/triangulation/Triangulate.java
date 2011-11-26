@@ -10,18 +10,24 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import triangulation.Point;
 import java.util.Random;
+import sun.org.mozilla.javascript.internal.ast.Jump;
 
 /**
- * @author Domino
+ * @author Dominik Januvka 2011
  */
 public class Triangulate {
-
-    public int amount = 10; //kolko bodov chcem/mam v poli
-    public Point[] point_cloud = new Point[amount];  //array of points2d  // ID, X, Y, used(bool)
-/*zle*/    public Edge[] edges = new Edge[30 * amount - 3];  //array of edges, hran je len tolko kolko je teoreticky nekonvexnych hran //akbyze potrebujeme konvexne hrany rozmyslat -> je potrebne zvysit kapacitu pola, o neviem kolko :) (pripadne vyrobit druhe pole urcene len an tieto hrany)
+    
+//----->>  interaface
+    public int amount = 20; //kolko bodov chcem/mam v poli
+    public boolean startRandom = true; //nahodny start bod, false= optimalny start bod
+    public int sort = 0;  //sort podla metriky, 1-ano, 0-nie-nesortuj nic
+//-----<<  interaface
+    
+    public Point[] point_cloud ;//= new Point[amount];  //array of points2d  // ID, X, Y, used(bool)
+/*zle*/    public Edge[] edges ;//= new Edge[30 * amount - 3];  //array of edges, hran je len tolko kolko je teoreticky nekonvexnych hran //akbyze potrebujeme konvexne hrany rozmyslat -> je potrebne zvysit kapacitu pola, o neviem kolko :) (pripadne vyrobit druhe pole urcene len an tieto hrany)
     public Edge[] convex = new Edge[100];  //array of edges, hrany konvexne
 /*zle*/    //public Edge[] edges = new Edge[100];  //array of edges, hran je len tolko kolko je teoreticky nekonvexnych hran //akbyze potrebujeme konvexne hrany rozmyslat -> je potrebne zvysit kapacitu pola, o neviem kolko :) (pripadne vyrobit druhy LIST urceny len na tieto hrany)
-    public Circle[] circles = new Circle[amount];
+    public Circle[] circles ;//= new Circle[amount];
     ArrayList<Circle> circlesA = new ArrayList<Circle>();
     ArrayList<Edge> convexA = new ArrayList<Edge>();
 
@@ -39,30 +45,47 @@ public class Triangulate {
 
     }
     
-    /*
+    /**
      * samotne spustenie
      */
     public Triangulate() {
-        getRandomPoints(amount);  //neake nahodne mracno bodov v 2d
+        //spustime user interface pre nastavenie 
+        UIfc ui = new UIfc(null, true);
+        ui.setVisible(true);
+        
+        amount = ui.getAmount();
+        startRandom = ui.isStartRandom();
+        sort = ui.getSort();
+        
+point_cloud = new Point[amount];
+edges = new Edge[30 * amount - 3];
+circles = new Circle[amount];
+        
+        //neake nahodne mracno bodov v 2d
+        getRandomPoints(amount);  
 //        for (int i = 0; i < point_cloud.length; i++) {
 //            System.out.println(point_cloud[i].toString()); //show points in point_cloud
 //        }
-
-        // zvolime si nahodne startovaci bod  ---alebo
-//        int startPointID = getRandomStartPoint(amount);
-//        System.out.println("first point: " + point_cloud[startPointID]);
-
-        //--- alebo... zvolime si optimalny bod podla metriky
-        //parameter 1-ked chcem sortovat pole pointov,0-nechcem nic sortovat
-        int startPointID = getOptimalStartPoint(0, point_cloud, amount);
-        System.out.println("first OPTIMAL point: " + point_cloud[startPointID]);
+        
+        int startPointID = 0;  //startovaci bod
+        if (startRandom) {
+            // zvolime si nahodne startovaci bod  ---alebo
+            startPointID = getRandomStartPoint(amount);
+            System.out.println("first point: " + point_cloud[startPointID]);
+        } else {
+            //--- alebo... zvolime si optimalny bod podla metriky
+            //parameter 1-ked chcem sortovat pole pointov,0-nechcem nic sortovat
+            startPointID = getOptimalStartPoint(sort, point_cloud, amount);
+            System.out.println("first OPTIMAL point: " + point_cloud[startPointID]);
+        }
 
         
         // spravime prvy trojuholnik!!!
         if (amount >= 3) {
             firstTriangle(startPointID);
         } else {
-            System.out.println("nedostatocny pocet bodov pre triangulaciu"); 
+            System.out.println("nedostatocny pocet bodov pre triangulaciu. KONCIM!");
+            System.exit(0);
             return ;  // ???
         }
 
@@ -100,20 +123,20 @@ public class Triangulate {
 //        point_cloud[8] = new Point(8,18,16);
 //        point_cloud[9] = new Point(9,14,13);
 
-        point_cloud[0] = new Point(0,10,10);
-        point_cloud[1] = new Point(1,10,20);
-        point_cloud[2] = new Point(2,10,30);
-        point_cloud[3] = new Point(3,20,10);
-        point_cloud[4] = new Point(4,20,20);
-        point_cloud[5] = new Point(5,20,30);
-        point_cloud[6] = new Point(6,30,10);
-        point_cloud[7] = new Point(7,30,20);
-        point_cloud[8] = new Point(8,30,30);
-        point_cloud[9] = new Point(9,40,10);
+//        point_cloud[0] = new Point(0,10,10);
+//        point_cloud[1] = new Point(1,10,20);
+//        point_cloud[2] = new Point(2,10,30);
+//        point_cloud[3] = new Point(3,20,10);
+//        point_cloud[4] = new Point(4,20,20);
+//        point_cloud[5] = new Point(5,20,30);
+//        point_cloud[6] = new Point(6,30,10);
+//        point_cloud[7] = new Point(7,30,20);
+//        point_cloud[8] = new Point(8,30,30);
+//        point_cloud[9] = new Point(9,40,10);
 
-//        for (int i = 0; i < point_cloud.length; i++) {
-//            point_cloud[i] = new Point(i, /*(int)*/ round((Math.random() * Math.random() * 100),4), /*(int)*/ round((Math.random() * Math.random() * 100),4));
-//        }
+        for (int i = 0; i < point_cloud.length; i++) {
+            point_cloud[i] = new Point(i, /*(int)*/ round((Math.random() * Math.random() * 100),4), /*(int)*/ round((Math.random() * Math.random() * 100),4));
+        }
 
     }
 
@@ -182,6 +205,7 @@ public class Triangulate {
                     invalid.add(yyy);   //nastane len raz.
                 }
                 if (invalid.contains(xxx)) {
+                    point3 = yyy;
                     System.out.println("break!");
                     break;
                 } else {
@@ -190,7 +214,7 @@ public class Triangulate {
                     System.out.println("navstivil som " + yyy + ", novy je " + xxx);
                 }
             }
-            
+
             if (xxx == -1) {   // ak sme nasli nieco vhodnejsie tak to dame do POINT3
                 point3 = yyy;
                 System.out.println("oprava");
