@@ -24,12 +24,13 @@ public class Triangulate {
 //-----<<  interaface
     
     public Point[] point_cloud ;//= new Point[amount];  //array of points2d  // ID, X, Y, used(bool)
-/*zle*/    public Edge[] edges ;//= new Edge[30 * amount - 3];  //array of edges, hran je len tolko kolko je teoreticky nekonvexnych hran //akbyze potrebujeme konvexne hrany rozmyslat -> je potrebne zvysit kapacitu pola, o neviem kolko :) (pripadne vyrobit druhe pole urcene len an tieto hrany)
+///*zle*/    public Edge[] edges ;//= new Edge[30 * amount - 3];  //array of edges, hran je len tolko kolko je teoreticky nekonvexnych hran //akbyze potrebujeme konvexne hrany rozmyslat -> je potrebne zvysit kapacitu pola, o neviem kolko :) (pripadne vyrobit druhe pole urcene len an tieto hrany)
     public Edge[] convex = new Edge[100];  //array of edges, hrany konvexne
 /*zle*/    //public Edge[] edges = new Edge[100];  //array of edges, hran je len tolko kolko je teoreticky nekonvexnych hran //akbyze potrebujeme konvexne hrany rozmyslat -> je potrebne zvysit kapacitu pola, o neviem kolko :) (pripadne vyrobit druhy LIST urceny len na tieto hrany)
     public Circle[] circles ;//= new Circle[amount];
     ArrayList<Circle> circlesA = new ArrayList<Circle>();
     ArrayList<Edge> convexA = new ArrayList<Edge>();
+    ArrayList<Edge> edges1 = new ArrayList<Edge>();
 
     /**
      * @param args the command line arguments
@@ -38,7 +39,7 @@ public class Triangulate {
         //System.out.println((int)(Math.random() * Math.random() * 100));
         System.out.println("////////////////////////////////////////////////////////////////////////////////////");
         System.out.println("Triangulation algorithm of Boris Nikolaevich Delaunay, code by Dominik Januvka. 2011");
-        System.out.println("Version 2.0 , NEWS: implemented new triangulation method");
+        System.out.println("Version 2.9 , NEWS: new 3angulation method");
         System.out.println("////////////////////////////////////////////////////////////////////////////////////");
         // volanie spustenia aplikacie
         Triangulate triangulate = new Triangulate();
@@ -58,7 +59,7 @@ public class Triangulate {
         sort = ui.getSort();
         
 point_cloud = new Point[amount];
-edges = new Edge[30 * amount - 3];
+//edges = new Edge[30 * amount - 3];
 circles = new Circle[amount];
         
         //neake nahodne mracno bodov v 2d
@@ -88,27 +89,26 @@ circles = new Circle[amount];
             System.exit(0);
             return ;  // ???
         }
-
+        
+        
         /* teraz treba hladat najblizsi bod k trojuhoniku
         a - porovnat vzdialenost kazdej hrany s najblizsim najdenym vybranym bodom   //*** optimalizacia
         b - circumcircles
         c - spirala, pozerat +1 bod hore, dole, doprava...
          */
-//        triangulate();  //ostatne 3uholniky
+        triangulate();  //ostatne 3uholniky
         
         //dokreslime konvexne trojuholniky po krajoch (mozme, NEMUSIME)
         konvex();
-
-        //opisana kruznica
-        //circumcircle(Point p1,Point p2,Point p3);
+        
         
         //otvorime si okienko a nakreslim co to vlastne vyrobilo
         Show gui = new Show();
         gui.setVisible(true);
-        gui.Kresli(point_cloud, edges, circlesA);
+        gui.Kresli(point_cloud, edges1, circlesA);
     }
 
-    /*
+    /**
      * Generates a set of random points to triangulate, nums from 0.0 to 100.0.
      */
     private void getRandomPoints(int amount) {
@@ -140,7 +140,7 @@ circles = new Circle[amount];
 
     }
 
-    /*
+    /**
      * Generates a random ID of start point, to start triangulation.
      */
     private int getRandomStartPoint(int amount) {
@@ -148,7 +148,7 @@ circles = new Circle[amount];
         return randomGenerator.nextInt(amount);
     }
 
-    /*
+    /**
      * make first triangle
      */
     private void firstTriangle(int startPointID) {
@@ -181,7 +181,9 @@ circles = new Circle[amount];
         for (int i = 0; i < point_cloud.length; i++) {
             if (!(point_cloud[i].isUsed())) {     //vsetky okrem prveho vybrateho
                 //porovname vsetky vzdialenosti bodov od 2. bodu, MOZME hladat aj od STREDU KRUZNICE (ak chceme)!!!
-                dist = distanceFromEdge(edges[0], point_cloud[i]);
+                //TODO: MOZME zobrat hned PRVY nepouzity z hora lebo ak su optimalne sortovane netreba hladat najblizsi!!!
+//                dist = distanceFromEdge(edges[0], point_cloud[i]);
+                dist = distanceFromEdge(edges1.get(0), point_cloud[i]);
                 //if (dist < dist_last) {  // XXX pouzit ine porovnavanie
                 if (0 >= dist.compareTo(dist_last)) {  
                     dist_last = dist;
@@ -191,9 +193,8 @@ circles = new Circle[amount];
         }
         System.out.println("third point. distance from edge: " + dist_last + ", point: " + point_cloud[point3].toString());
         
-        //TODO: doplnit delaunay circumCircles koli kontrole prekryvania hran
+        //Alg na hladanie vhodnejsieho kandidata!
         int xxx = circleHasPoint(point_cloud[startPointID], point_cloud[point2], point_cloud[point3]);
-        
         if (xxx != -1) {
             int yyy = -1;
             ArrayList invalid = new ArrayList(); // declares an array of integers        
@@ -235,20 +236,62 @@ circles = new Circle[amount];
      * samotna triangulacia
      */
     private void triangulate() {
-        int stat;
-        int k = 3;
+        int exp = 0;
+        int edgeID = 3;
+        int xxx;
+        Double dist = new Double(0);
+        Double dist_last = Double.MAX_VALUE;
+        int point = -1;
+        boolean koniec = false;
         
-        for (int i = 0; i < edges.length; i++) {
+        
+//        for (int f = 0; f < point_cloud.length; f++) {
+//            point_cloud[f].setUsed();
+//        }
+        
+        for (int i = 0; i < edges1.size(); i++) {
+
+            //4 used edges only
             for (int j = 0; j < point_cloud.length; j++) {
-//                stat = solve(i,j);
-                stat = solve1(i,j);
                 if (point_cloud[j].isUsed()) {
-//TODO: kontrola ci existuju hrany k tomuto bodu,ked hej tak nic nerobim, a ked len jedna tak makeEdge druha hrana /a opacne
-                }else{
-                    makeEdge(k++, edges[i].l, point_cloud[j]);
-                    makeEdge(k++, edges[i].r, point_cloud[j]);  
+                    if (edges1.get(i).l == point_cloud[j] || edges1.get(i).r == point_cloud[j]) {
+                    } else {
+                        xxx = circleHasPoint(edges1.get(i).l, edges1.get(i).r, point_cloud[j]);
+                        if (-1 == xxx) {
+                            //toto teoreticky len dvakrat zbehne, lebo bod je len na lavej strane  hrany, alebo na pravej
+                            //ked nastane druhykrat -1jednotka, uz sa nemusi cyklus opakovat lebo aj tak uz nenastane ten pripad co chceme
+                            //kontrola ci existuje ten 3uholnik
+                            if (!edgeExist(edges1.get(i).l, point_cloud[j])) {
+                                makeEdge(edgeID++, edges1.get(i).l, point_cloud[j]);
+                            }
+                            if (!edgeExist(edges1.get(i).r, point_cloud[j])) {
+                                makeEdge(edgeID++, edges1.get(i).r, point_cloud[j]);
+                            }
+                        }
+                    }
                 }
             }
+
+            //4 not used edges only
+            for (int j = 0; j < point_cloud.length; j++) {
+                if (!point_cloud[j].isUsed()) {
+                    if ( -1 == circleHasPoint(edges1.get(i).l, edges1.get(i).r, point_cloud[j])) { //tu by sa dalo opytat stale ci je v kruznici neaeky nepouzity bod a s nim pokracovat
+                        //make edges!!!
+                        System.out.println(edgeID + "make edges!!!");
+                        makeEdge(edgeID++, edges1.get(i).l, point_cloud[j]);
+                        makeEdge(edgeID++, edges1.get(i).r, point_cloud[j]);
+                        point_cloud[j].setUsed();
+//                        koniec = false;
+                        break;
+                    } else {
+//                        koniec = true;
+                    }
+                }
+            }
+//            System.out.println("next edge" + i);
+//            if (koniec == true) {
+//                break;
+//            }
         }
     }
 
@@ -259,20 +302,20 @@ circles = new Circle[amount];
      * @param j
      * @return y - dalsi kandidat
      */
-    private int solve(int i, int j) {
-// -->> stat =   // until stat != -1 AND !p_c(stat).IsUsed
-        int y;
-        
-        if (j == -1) {
-            return j;
-        } else {
-            y = j;
-            j = circleHasPoint(edges[i].l, edges[i].r, point_cloud[j]);  //vrati bod vo vnutri opisanej kruznice tymito tromi bodmi
-            System.out.println("solve->"+j);
-            solve(i, j);
-            return y;
-        }
-    }
+//    private int solve(int i, int j) {
+//// -->> stat =   // until stat != -1 AND !p_c(stat).IsUsed
+//        int y;
+//
+//        if (j == -1) {
+//            return j;
+//        } else {
+//            y = j;
+//            j = circleHasPoint(edges[i].l, edges[i].r, point_cloud[j]);  //vrati bod vo vnutri opisanej kruznice tymito tromi bodmi
+//            System.out.println("solve->" + j);
+//            solve(i, j);
+//            return y;
+//        }
+//    }
 
     /**
      * nahrada za povodny solve, rozdiel je v tom, ze ...
@@ -280,32 +323,83 @@ circles = new Circle[amount];
      * @param j
      * @return vrati dalsieho najlepsieho kandidata
      */
-        private int solve1(int i, int j) {
-        int bool = circleHasPoint(edges[i].l, edges[i].r, point_cloud[j]);
-        if (bool == -1) {
-            return j;
-        }
-        int[] last = new int[5];
-        int y = 0;
-        int z = 0; // aktivator kontroly zacyklenia
+//    private int solve1(int i, int j) {
+//        int bool = circleHasPoint(edges[i].l, edges[i].r, point_cloud[j]);
+//        if (bool == -1) {
+//            return j;
+//        }
+//        int[] last = new int[5];
+//        int y = 0;
+//        int z = 0; // aktivator kontroly zacyklenia
+//
+//        while (bool != -1) {   //rekurzia ci nema opisana kruznica este dalsie body v sebe
+//            z++;
+//            if (z >= 5) {
+//                if (last[y - 1] == bool || last[y - 2] == bool || last[y - 3] == bool || last[y - 4] == bool) {
+//                    break;
+//                }
+//            }
+//
+//            last[y++] = bool;
+//            if (y == 4) {
+//                y = 0;
+//            }
+//
+//
+//            j = bool;
+//            bool = circleHasPoint(edges[i].l, edges[i].r, point_cloud[j]);
+//        }
+//        return j;
+//    }
 
-        while (bool != -1) {   //rekurzia ci nema opisana kruznica este dalsie body v sebe
-            z++;
-            if (z >= 5) {if (last[y - 1] == bool || last[y - 2] == bool || last[y - 3] == bool || last[y - 4] == bool)
-                    break;
-            }
-            
-            last[y++] = bool;
-            if (y == 4) y = 0;
-            
-
-            j = bool;
-            bool = circleHasPoint(edges[i].l, edges[i].r, point_cloud[j]);
-        }
-        return j;
-    }
-
-
+//    private int solve2 (){
+//        Double dist_last = Double.MAX_VALUE;
+//        Double dist;
+//
+//        for (int i = 0; i < point_cloud.length; i++) {
+//            if (!(point_cloud[i].isUsed())) {     //vsetky okrem prveho vybrateho
+//                //porovname vsetky vzdialenosti bodov od 2. bodu, MOZME hladat aj od STREDU KRUZNICE (ak chceme)!!!
+//                //TODO: MOZME zobrat hned PEVY nepouzity z hora lebo ak su optimalne sortovane netreba hladat najblizsi!!!
+//                dist = distanceFromEdge(edges[0], point_cloud[i]);
+//                //if (dist < dist_last) {  // XXX pouzit ine porovnavanie
+//                if (0 >= dist.compareTo(dist_last)) {  
+//                    dist_last = dist;
+//                    point3 = i;
+//                }
+//            }
+//        }
+//        System.out.println("third point. distance from edge: " + dist_last + ", point: " + point_cloud[point3].toString());
+//        
+//        int xxx = circleHasPoint(point_cloud[startPointID], point_cloud[point2], point_cloud[point3]);
+//        
+//        if (xxx != -1) {
+//            int yyy = -1;
+//            ArrayList invalid = new ArrayList(); // declares an array of integers        
+//            
+//            while (xxx != -1) {
+//                if (yyy == -1) {
+//                    invalid.add(point3);
+//                } else {
+//                    invalid.add(yyy);   //nastane len raz.
+//                }
+//                if (invalid.contains(xxx)) {
+//                    point3 = yyy;
+//                    System.out.println("break!");
+//                    break;
+//                } else {
+//                    yyy = xxx;
+//                    xxx = circleHasPoint(point_cloud[startPointID], point_cloud[point2], point_cloud[xxx]);
+//                    System.out.println("navstivil som " + yyy + ", novy je " + xxx);
+//                }
+//            }
+//
+//            if (xxx == -1) {   // ak sme nasli nieco vhodnejsie tak to dame do POINT3
+//                point3 = yyy;
+//                System.out.println("oprava");
+//            }
+//        }
+//        return 0;
+//    }
 
     
 
@@ -338,23 +432,26 @@ circles = new Circle[amount];
         return (double) Math.sqrt((double) (dx * dx + dy * dy));
     }
 
-    /*
-     * sprav hranu!
+
+    /**
+     * sprav hranu !
+     * @param i   - ID hrany
+     * @param left - lavy bod hrany
+     * @param right  - pravy bod hrany
      */
-//    private void makeEdge(int i, int left, int right) {
-//        edges[i] = new Edge(left, right);
-//    }
     private void makeEdge(int i, Point left, Point right) {
-        edges[i] = new Edge(left, right);
+        //        edges[i] = new Edge(left, right);
+        edges1.add(new Edge(left, right)); //TODO: overit ci je mozne aby nebolo potrebne edgeID, a stacilo len poradove cislo v liste
 
         double x, y;
         x = (left.getX() + right.getX()) / 2;
         y = (left.getY() + right.getY()) / 2;
         Point s = new Point((int) x, (int) y);
-        edges[i].midpoint(s);
+//        edges[i].midpoint(s);
+        edges1.get(i).midpoint(s);
     }
 
-    /*
+    /**
      * delaunay circumcircle,
      * input 3 body ,
      * return je dalsi (nejaky) kandidat, ak existuje vo vnutri opisanej kruznice.
@@ -373,12 +470,9 @@ circles = new Circle[amount];
             }
         } 
         return - 1; //ked nie je vo vnutri 3uholnika dalsi bod
-    }
+    }    
     
-    
-    
-    
-    /*
+    /**
      * Compute the circle defined by three points (circumcircle).
      */
     private Circle circumcircle(Point p1,Point p2,Point p3) {
@@ -427,7 +521,7 @@ circles = new Circle[amount];
         System.out.println("//TODO: implement THIS!");
     }
 
-/**
+    /**
  * vyriesi problem optimalneho startu
  * @param amount
  * @param point_cloud
@@ -459,6 +553,38 @@ circles = new Circle[amount];
         Rval = Rval * p;
         double tmp = Math.round(Rval);
         return  tmp / p;
+    }
+    
+    /**
+     * potvrdzuje existenciu hrany medzi zadanymi bodmi
+     * @param x
+     * @param y
+     * @return 
+     */
+    private boolean edgeExist(Point x, Point y) {
+//        throw new UnsupportedOperationException("Not yet implemented");
+//        edges1.contains(new Edge(x, y));
+        
+        for (int i = 0; i < edges1.size(); i++) {
+//            if (((edges1.get(i).l).equals(x) && (edges1.get(i).r).equals(y)) || 
+//                    ((edges1.get(i).l).equals(y) && (edges1.get(i).r).equals(x))) 
+//            {
+//                System.out.println("<<< Lallalala >>>");
+//                return true;
+//            }
+            if ( 
+                    ((edges1.get(i).l.getX() == x.getX()) &&  (edges1.get(i).l.getY() == x.getY()) &&
+                    (edges1.get(i).r.getX() == y.getX()) &&  (edges1.get(i).r.getY() == y.getY())) ||
+                    ((edges1.get(i).r.getX() == x.getX()) &&  (edges1.get(i).r.getY() == x.getY()) &&
+                    (edges1.get(i).l.getX() == y.getX()) &&  (edges1.get(i).l.getY() == y.getY()))
+                    ) {
+                System.out.println("<<< Lallalala >>>");
+                return true;
+            }
+            
+            
+        }
+        return false;
     }
 
 }

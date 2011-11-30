@@ -58,6 +58,7 @@ public class UIfc extends javax.swing.JDialog {
 
         jCheckBox1.setText("ano");
 
+        jCheckBox2.setSelected(true);
         jCheckBox2.setText("ano");
         jCheckBox2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

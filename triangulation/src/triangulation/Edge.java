@@ -15,7 +15,7 @@ public class Edge {
 //    int s, t;
 //    int l, r;    // toto je len ID bodu Laveho a potom pRaveho
     Point l, r;    // toto je len ID bodu Laveho a potom pRaveho
-    Point midpoint;    // toto je stred usecky/hrany
+    private Point midpoint;    // toto je stred usecky/hrany
     private boolean used = false;
     private Point[] direction = new Point[2];;  //LEFT -->> //RIGHT
 
@@ -33,7 +33,7 @@ public class Edge {
 
 //nastav stred
     public void midpoint(Point p){
-        this.midpoint = p;
+        this.setMidpoint(p);
     }
 //daj mi stred
     public Point getMidpoint(){
@@ -56,6 +56,13 @@ public class Edge {
      */
     public Point[] getDirection() {
         return direction;
+    }
+
+    /**
+     * @param midpoint the midpoint to set
+     */
+    public void setMidpoint(Point midpoint) {
+        this.midpoint = midpoint;
     }
 
 }
