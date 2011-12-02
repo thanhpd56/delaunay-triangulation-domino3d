@@ -18,8 +18,9 @@ import javax.swing.*;
  * @author Domino
  */
 public class Show extends javax.swing.JFrame {
-    Point[] point_cloud;
+//    Point[] point_cloud;
 //    Edge[] edges;
+    ArrayList<Point> point_cloud1;
     ArrayList<Edge> edges;
     int scale = 11;
     int offset = 50;
@@ -33,9 +34,9 @@ float y;
         //body
         g.setColor(Color.RED);
         try {
-            for (int i = 0; i < point_cloud.length; i++) {
-                g.fillOval((int)point_cloud[i].getX() * scale + offset, (int)point_cloud[i].getY() * scale + offset, 5, 5);
-                g.drawString("" + point_cloud[i].getID(), (int)point_cloud[i].getX() * scale + offset, (int)point_cloud[i].getY() * scale + offset);
+            for (int i = 0; i < point_cloud1.size(); i++) {
+                g.fillOval((int)point_cloud1.get(i).getX() * scale + offset, (int)point_cloud1.get(i).getY() * scale + offset, 5, 5);
+                g.drawString("" + point_cloud1.get(i).getID(), (int)point_cloud1.get(i).getX() * scale + offset, (int)point_cloud1.get(i).getY() * scale + offset);
             }
         } catch (Exception e) {
         }
@@ -46,7 +47,7 @@ float y;
             for (int i = 0; i < edges.size(); i++) {
                 g.drawLine((int)edges.get(i).l.getX() * scale + offset, (int)edges.get(i).l.getY() * scale + offset, (int)edges.get(i).r.getX() * scale + offset, (int)edges.get(i).r.getY() * scale + offset);
                 if (i==0||i==1||i==2) {g.setColor(Color.CYAN);
-                    g.drawString("" + point_cloud[i].getID(), (int)point_cloud[i].getX() * scale + offset, (int)point_cloud[i].getY() * scale + offset);
+                    g.drawString("" + point_cloud1.get(i).getID(), (int)point_cloud1.get(i).getX() * scale + offset, (int)point_cloud1.get(i).getY() * scale + offset);
                 } else {g.setColor(Color.blue);
                 g.drawLine((int)edges.get(i).l.getX() * scale + offset, (int)edges.get(i).l.getY() * scale + offset, (int)edges.get(i).r.getX() * scale + offset, (int)edges.get(i).r.getY() * scale + offset);
                 }
@@ -77,9 +78,9 @@ float y;
     }
     
 //    void Kresli(triangulation.Point[] point_cloud, Edge[] edges, ArrayList circlesA) {
-    void Kresli(triangulation.Point[] point_cloud, ArrayList edges, ArrayList circlesA) {
+    void Kresli(ArrayList point_cloud, ArrayList edges, ArrayList circlesA) {
 //        paint(new Graphics);
-        this.point_cloud=point_cloud;
+        this.point_cloud1=point_cloud;
         this.edges=edges;
         this.circlesA=circlesA;
 

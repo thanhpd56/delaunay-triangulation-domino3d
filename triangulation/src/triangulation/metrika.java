@@ -1,7 +1,9 @@
 package triangulation;
 
 import com.sun.org.apache.bcel.internal.generic.FLOAD;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  *
@@ -10,12 +12,13 @@ import java.util.Arrays;
 public class metrika {
     private double result;
     private int amount;
-    Point[] point_cloud;
+//    Point[] point_cloud;
+    ArrayList<Point> point_cloud1;
     double[] cloud;
 
 
-    public metrika(Point[] point_cloud, int amount) {
-        this.point_cloud=point_cloud;
+    public metrika(ArrayList point_cloud, int amount) {
+        this.point_cloud1=point_cloud;
         this.amount=amount;
         cloud = new double[amount];
     }
@@ -28,7 +31,7 @@ public class metrika {
         for (int i = 0; i < amount; i++) {
             for (int j = 0; j < amount; j++) {
                 //minimalna vzdialenost
-                tmp = distance(point_cloud[i], point_cloud[j]);
+                tmp = distance(point_cloud1.get(i), point_cloud1.get(j));
                 cloud[j] = tmp;
                 if (0 >= tmp.compareTo(dist_last) && tmp != 0.0) {
                     dist_last = tmp;
@@ -39,8 +42,8 @@ public class metrika {
             }result = round(result / cloud.length,4);
 
 //priradime do mracna kazdemu bodu jeho metriku ! :-)
-            point_cloud[i].setMin(dist_last);
-            point_cloud[i].setAvg(result);
+            point_cloud1.get(i).setMin(dist_last);
+            point_cloud1.get(i).setAvg(result);
   System.out.println(i+"_"+dist_last+" "+result);
             dist_last = Double.MAX_VALUE;
         }
@@ -48,8 +51,8 @@ public class metrika {
 //teraz vyberiem najvhodnejsi prvok  >> podla parametra PRIEMERNEJ vzdialenosti // da sa zmenit
         dist_last = Double.MAX_VALUE;
         for (int i = 0; i < amount; i++) {
-            if (dist_last >= (point_cloud[i].getAvg())) {
-                dist_last = (point_cloud[i].getAvg());
+            if (dist_last >= (point_cloud1.get(i).getAvg())) {
+                dist_last = (point_cloud1.get(i).getAvg());
                 optimal = i;
             }
         }
@@ -60,19 +63,20 @@ public class metrika {
  * SORT
  * @return
  */
-    Point[] sort() {
+    ArrayList<Point> /*Point[]*/ sort() {
 //        for (int i = 0; i < point_cloud.length; i++) {
 //            System.out.println(point_cloud[i].getID());
 //        }
 
-        Arrays.sort(point_cloud);
+//        Arrays.sort(point_cloud);
+        Collections.sort(point_cloud1);
         
 //        System.out.println("______");
 //        for (int i = 0; i < point_cloud.length; i++) {
 //            System.out.println(point_cloud[i].getID());
 //        }
 
-        return point_cloud;
+        return point_cloud1;
     }
 
 

@@ -26,7 +26,8 @@ public class Circle {
         Double b = this.getR();
         b=round(b,4);  //zaokruhlime --//--
 	if (0 > a.compareTo(b)){
-             System.out.println("/"+a+"_<_"+b+" "+(0 > a.compareTo(b)));
+//System.out.println("/"+a+"_<_"+b+" "+(0 > a.compareTo(b)));
+            
 //	if (this.distance(p) < this.getR() )
 //if (0 >= dist.compareTo(dist_last)) {
 	    return true;
