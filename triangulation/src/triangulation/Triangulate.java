@@ -43,7 +43,7 @@ public class Triangulate {
         //System.out.println((int)(Math.random() * Math.random() * 100));
         System.out.println("////////////////////////////////////////////////////////////////////////////////////");
         System.out.println("Triangulation algorithm of Boris Nikolaevich Delaunay, code by Dominik Januvka. 2011");
-        System.out.println("Version 2.9 , NEWS: new 3angulation method");
+        System.out.println("Version 2.11 , NEWS: new 3angulation method");
         System.out.println("////////////////////////////////////////////////////////////////////////////////////");
         // volanie spustenia aplikacie
         Triangulate triangulate = new Triangulate();
@@ -74,13 +74,13 @@ public class Triangulate {
         
         //blizke body spojim podla parametru    (Double) ui.getTolerance().getText()
         if (collapse) {
-            collapse(Double.parseDouble(ui.getTolerance().getText()));
+            point_cloud1 = collapse(Double.parseDouble(ui.getTolerance().getText()));
 //            System.out.println("colapse tolerance " + Double.parseDouble(ui.getTolerance().getText()));
             amount = point_cloud1.size();
         } else {
-            for (int i = 0; i < amount; i++) {
-                point_cloud1.add(point_cloud[i]);
-            }
+//            for (int i = 0; i < amount; i++) {
+//                point_cloud1.add(point_cloud[i]);
+//            }
         }
 
         
@@ -154,6 +154,17 @@ public class Triangulate {
 //        point_cloud[7] = new Point(7,30,20);
 //        point_cloud[8] = new Point(8,30,30);
 //        point_cloud[9] = new Point(9,40,10);
+        
+//        point_cloud1.add(new Point(0,10,10));
+//        point_cloud1.add(new Point(1,10,20));
+//        point_cloud1.add( new Point(2,10,30));
+//        point_cloud1.add( new Point(3,20,10));
+//        point_cloud1.add(new Point(4,20,20));
+//        point_cloud1.add( new Point(5,20,30));
+//        point_cloud1.add( new Point(6,30,10));
+//        point_cloud1.add( new Point(7,30,20));
+//        point_cloud1.add( new Point(8,30,30));
+//        point_cloud1.add( new Point(9,40,10));
 
 //        for (int i = 0; i < point_cloud.length; i++) {
         for (int i = 0; i < amount; i++) {
@@ -303,7 +314,7 @@ public class Triangulate {
                     } else {
                         if (-1 == circleHasPoint(edges1.get(i).l, edges1.get(i).r, point_cloud1.get(j))) { //tu by sa dalo opytat stale ci je v kruznici neaeky nepouzity bod a s nim pokracovat
                             //make edges!!!
-                            System.out.println(edgeID + "make edges!!!");
+//                            System.out.println(edgeID + "make edges!!!");
                             makeEdge(edgeID++, edges1.get(i).l, point_cloud1.get(j));
                             makeEdge(edgeID++, edges1.get(i).r, point_cloud1.get(j));
                             point_cloud1.get(j).setUsed();
@@ -384,13 +395,16 @@ public class Triangulate {
         Circle cc = circumcircle(a, b, c);
                
         for (int i = 0; i < point_cloud1.size(); i++) {
-            if (i == a.getID() || i == b.getID() || i == c.getID() ) {} //do nothing
+//            if (i == a.getID() || i == b.getID() || i == c.getID() ) {} //do nothing
+            if (point_cloud1.get(i).getID() == a.getID() || point_cloud1.get(i).getID() == b.getID() || point_cloud1.get(i).getID() == c.getID() ) {}
             else {
                 if (cc.isInside(point_cloud1.get(i))) {
                     return i;
                 }
             }
         } 
+        circlesA.add(cc); //adding value to ArrayList
+//      cc.setvalid();
         return - 1; //ked nie je vo vnutri 3uholnika dalsi bod
     }    
     
@@ -422,7 +436,7 @@ public class Triangulate {
 
 	// Radius
 	//r = c.distance(p1);
-        circlesA.add(new Circle(premenna,circleX,circleY)); //adding value to ArrayList
+//        circlesA.add(new Circle(premenna,circleX,circleY)); //adding value to ArrayList
 //        System.out.print("ň");
         return new Circle(premenna,circleX,circleY);
     
@@ -511,11 +525,17 @@ System.out.println("after sort"+point_cloud1.toString());
         return false;
     }
 
-    private void collapse(Double tol) {
+    /**
+     * spojenie velmi blizkych bodov v ramci zadanej tolerancie
+     * @param tol 
+     */
+    private ArrayList collapse(Double tol) {
         Double dis;
+        ArrayList<Point> ppc = new ArrayList<Point>(); 
+        Point[] ppp = new Point[point_cloud1.size()];
 //        Double tol = 0.001;
 
-        System.out.println("a>>>>" + point_cloud1.size());
+        System.out.println("a>>>>" + point_cloud1.size() + point_cloud1.toString());
 //            for (int i = 0; i < point_cloud1.size(); i++) {
 //                for (int j = 0; j < point_cloud1.size(); j++) {
 //                    if (i != j) {
@@ -529,20 +549,27 @@ System.out.println("after sort"+point_cloud1.toString());
 //                    }
 //                }
 //            }
+        
+        
+        for (int i = 0; i < point_cloud1.size(); i++) {
+            ppp[i] = point_cloud1.get(i);
+        }
+        
 //            int k = 0;
-        for (int i = 0; i < point_cloud.length; i++) {
-            for (int j = 0; j < point_cloud.length; j++) {
-                if (i != j && point_cloud[i] != null && point_cloud[j] != null) {
-                    dis = distance(point_cloud[i], point_cloud[j]);
-                    System.out.println("distance " + dis + ", tolerance " + tol);
-                    System.out.println(dis.compareTo(tol));
+        for (int i = 0; i < ppp.length; i++) {
+            for (int j = 0; j < ppp.length; j++) {
+                ui.jProgressBar2.setValue(100*i/ppp.length);
+                if (i != j && ppp[i] != null && ppp[j] != null) {
+                    dis = distance(ppp[i], ppp[j]);
+//                    System.out.println("distance " + dis + ", tolerance " + tol);
+//                    System.out.println(dis.compareTo(tol));
                     if (0 >= dis.compareTo(tol)) {
-                        System.out.println("aaa");
+//                        System.out.println("spajam!");
 //                            point_cloud1.add(new Point( k++, ((point_cloud[i].getX()+point_cloud[j].getX())/2), ((point_cloud[i].getY()+point_cloud[j].getY())/2)));
 //                            point_cloud[i].setX((point_cloud[i].getX()+point_cloud[j].getX())/2);
 //                            point_cloud[i].setY((point_cloud[i].getY()+point_cloud[j].getY())/2);
-                        point_cloud[i] = new Point(i, (point_cloud[i].getX() + point_cloud[j].getX()) / 2, (point_cloud[i].getY() + point_cloud[j].getY()) / 2);
-                        point_cloud[j] = null;
+                        ppp[i] = new Point(i, round((ppp[i].getX() + ppp[j].getX()) / 2,4), round((ppp[i].getY() + ppp[j].getY()) / 2,4));
+                        ppp[j] = null;
                     } else {
 //                            point_cloud1.add(point_cloud[i]);
 //                            point_cloud1.add(point_cloud[j]);
@@ -550,12 +577,20 @@ System.out.println("after sort"+point_cloud1.toString());
                 }
             }
         }
-        for (int i = 0; i < point_cloud.length; i++) {
-            if (point_cloud[i] != null) {
-                point_cloud1.add(point_cloud[i]);
+        
+        
+        
+//        System.out.println("2"+point_cloud1.toString());
+        
+        for (int i = 0; i < ppp.length; i++) {
+            if (ppp[i] != null) {
+                ppc.add(ppp[i]);
+//                System.out.println(ppp[i].toString());
             }
         }
-        System.out.println("b>>>>" + point_cloud1.size());
+        System.out.println("b>>>>" + ppc.size() + ppc.toString());
+        
+        return ppc;
     }
 
 }
