@@ -39,7 +39,8 @@ public class metrika {
             }
             for (int k = 0; k < cloud.length; k++) {
                 result = result + cloud[k];
-            }result = round(result / cloud.length,4);
+//            }result = round(result / cloud.length,4);
+            }result = result / cloud.length;
 
 //priradime do mracna kazdemu bodu jeho metriku ! :-)
             point_cloud1.get(i).setMin(dist_last);
@@ -90,7 +91,8 @@ public class metrika {
         dx = a.getX() - b.getX();
         dy = a.getY() - b.getY();
         //System.out.println((float)Math.sqrt((double)(dx * dx + dy * dy)));
-        return round( Math.sqrt((double) (dx * dx + dy * dy)),4);
+//        return round( Math.sqrt((double) (dx * dx + dy * dy)),4);
+        return  Math.sqrt((double) (dx * dx + dy * dy));
     }
 
     /**

@@ -22,9 +22,9 @@ public class Circle {
      */
     public boolean isInside(Point p) {
         Double a = this.distance(p);
-        a=round(a,4);   //zaokruhlime na 4 desatinne cisla
+//        a=round(a,4);   //zaokruhlime na 4 desatinne cisla
         Double b = this.getR();
-        b=round(b,4);  //zaokruhlime --//--
+//        b=round(b,4);  //zaokruhlime --//--
 	if (0 > a.compareTo(b)){
 //System.out.println("/"+a+"_<_"+b+" "+(0 > a.compareTo(b)));
             

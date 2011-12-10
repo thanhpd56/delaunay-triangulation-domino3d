@@ -58,15 +58,15 @@ float y;
         } catch (Exception e) {
         }
 
-        //kruhy
-        g.setColor(Color.ORANGE);
-        try {
-            for (int i = 0; i < circlesA.size(); i++) {
-                Circle circle = (Circle) circlesA.get(i);
-                g.drawOval(((int)circle.getX()-(int)circle.getR()) * scale + offset,((int)circle.getY()-(int)circle.getR()) * scale + offset,2*(int)circle.getR() * scale,2*(int)circle.getR() * scale);
-            }
-        } catch (Exception e) {
-        }
+//        //kruhy
+//        g.setColor(Color.ORANGE);
+//        try {
+//            for (int i = 0; i < circlesA.size(); i++) {
+//                Circle circle = (Circle) circlesA.get(i);
+//                g.drawOval(((int)circle.getX()-(int)circle.getR()) * scale + offset,((int)circle.getY()-(int)circle.getR()) * scale + offset,2*(int)circle.getR() * scale,2*(int)circle.getR() * scale);
+//            }
+//        } catch (Exception e) {
+//        }
 
 
     }
