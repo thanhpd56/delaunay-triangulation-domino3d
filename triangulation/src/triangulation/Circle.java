@@ -8,12 +8,14 @@ package triangulation;
 public class Circle {
     private double x;
     private double y;
+    private double z;
     private double  r;
     Point[] point_cloud;
 
-    Circle(double R, double circleX, double circleY) {
+    Circle(double R, double circleX, double circleY, double circleZ) {
         this.x = circleX;
         this.y = circleY;
+        this.z = circleZ;
         this.r = R;
     }
 
@@ -40,12 +42,14 @@ public class Circle {
      * distance from STRED kruznice to Point A
      */
     public double distance(Point a) {
-        double dx, dy;
+        double dx, dy, dz;
 
         dx = a.getX() - this.getX();
         dy = a.getY() - this.getY();
+        dz = a.getZ() - this.getZ();
         //System.out.println((double)Math.sqrt((double)(dx * dx + dy * dy)));
-        return Math.sqrt((double) (dx * dx + dy * dy));
+//        return Math.sqrt((double) (dx * dx + dy * dy));
+        return Math.sqrt((double) (dx * dx + dy * dy + dz * dz));
     }
 
     /**
@@ -60,6 +64,13 @@ public class Circle {
      */
     public double getY() {
         return y;
+    }
+    
+    /**
+     * @return the y
+     */
+    public double getZ() {
+        return z;
     }
 
     /**

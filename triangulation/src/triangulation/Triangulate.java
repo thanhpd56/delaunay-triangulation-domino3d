@@ -155,21 +155,21 @@ public class Triangulate {
 //        point_cloud[8] = new Point(8,30,30);
 //        point_cloud[9] = new Point(9,40,10);
         
-//        point_cloud1.add(new Point(0,10,10));
-//        point_cloud1.add(new Point(1,10,20));
-//        point_cloud1.add( new Point(2,10,30));
-//        point_cloud1.add( new Point(3,20,10));
-//        point_cloud1.add(new Point(4,20,20));
-//        point_cloud1.add( new Point(5,20,30));
-//        point_cloud1.add( new Point(6,30,10));
-//        point_cloud1.add( new Point(7,30,20));
-//        point_cloud1.add( new Point(8,30,30));
-//        point_cloud1.add( new Point(9,40,10));
+//        point_cloud1.add( new Point(0,10,10,1));
+//        point_cloud1.add( new Point(1,10,20,2));
+//        point_cloud1.add( new Point(2,10,30,1));
+//        point_cloud1.add( new Point(3,20,10,3));
+//        point_cloud1.add( new Point(4,20,20,4));
+//        point_cloud1.add( new Point(5,20,30,1));
+//        point_cloud1.add( new Point(6,30,10,2));
+//        point_cloud1.add( new Point(7,30,20,2));
+//        point_cloud1.add( new Point(8,30,30,1));
+//        point_cloud1.add( new Point(9,40,10,4));
 
 //        for (int i = 0; i < point_cloud.length; i++) {
         for (int i = 0; i < amount; i++) {
 //            point_cloud1.add(new Point(i, /*(int)*/ round((Math.random() * Math.random() * 100),4), /*(int)*/ round((Math.random() * Math.random() * 100),10)));
-            point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100),  (Math.random() * Math.random() * 100)));
+            point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100),  (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100)));
         }
 
     }
@@ -526,10 +526,12 @@ public class Triangulate {
         //        edges[i] = new Edge(left, right);
         edges1.add(new Edge(left, right)); 
 
-        double x, y;
+        double x, y, z;
         x = (left.getX() + right.getX()) / 2;
         y = (left.getY() + right.getY()) / 2;
-        Point s = new Point((int) x, (int) y);
+        z = (left.getZ() + right.getZ()) / 2;
+//todo: odstranit pretypovanie na int
+        Point s = new Point((int) x, (int) y, (int) z);
 //        edges[i].midpoint(s);
         edges1.get(i).midpoint(s);
     }
@@ -563,33 +565,60 @@ public class Triangulate {
      */
     private Circle circumcircle(Point p1,Point p2,Point p3) {
 	double stred;
-        double circleX, circleY;
-        circleX = circleY = 0;
+        double circleX, circleY, circleZ;
+        circleX = circleY = circleZ = 0;
 
 	stred = crossProduct(p1, p2, p3); //TODO: zvysit presnost doubleDouble alebo nejake osetrit 4-uholniky (viac bodov na jednej kruznici)
 	if (stred != 0.0)
 	    {
-                double p1Sq, p2Sq, p3Sq;
-                double num, den;
+                double p1Sq, p2Sq, p3Sq, p4Sq, p5Sq, p6Sq;
+                double num;
 
 		p1Sq = p1.getX() * p1.getX() + p1.getY() * p1.getY();
 		p2Sq = p2.getX() * p2.getX() + p2.getY() * p2.getY();
 		p3Sq = p3.getX() * p3.getX() + p3.getY() * p3.getY();
+		p4Sq = p1.getX() * p1.getX() + p1.getZ() * p1.getZ(); //
+		p5Sq = p2.getX() * p2.getX() + p2.getZ() * p2.getZ(); //
+		p6Sq = p3.getX() * p3.getX() + p3.getZ() * p3.getZ(); //
+                //The Cartesian coordinates of the circumcenter are
+                //http://en.wikipedia.org/wiki/Circumscribed_circle
+                //http://upload.wikimedia.org/wikipedia/en/math/9/2/e/92e0593d517f4cdb4143e8c53f6db531.png
+                //http://everything2.com/title/Circumcenter
+/*          
+                      (dA*(Cy-By) + dB*(Ay-Cy) + dC*(By-Ay))
+                O'x = -----------------------------------------   (1a) 
+                      2*(Ax*(Cy-By) + Bx*(Ay-Cy) + Cx*(By-Ay))
 
+                      -(dA*(Cx-Bx) + dB*(Ax-Cx) + dC*(Bx-Ax))   
+                O'y = -----------------------------------------   (1b) 
+                      2*(Ax*(Cy-By) + Bx*(Ay-Cy) + Cx*(By-Ay))
+
+                dA  = Ax^2 + Ay^2           (2a)
+                dB  = Bx^2 + By^2           (2b)
+                dC  = Cx^2 + Cy^2           (2c)
+
+                O'= (O'x, O'y)... Cartesian coordinates of the circumcenter
+                A = (Ax, Ay)... the coordinates of vertex A of triangle ABC
+                B = (Bx, By)... the coordinates of vertex B of triangle ABC
+                C = (Cx, Cy)... the coordinates of vertex C of triangle ABC
+*/
+      
 		num = p1Sq*(p2.getY() - p3.getY()) + p2Sq*(p3.getY() - p1.getY()) + p3Sq*(p1.getY() - p2.getY());
 		circleX = num / (2.0f * stred);
 		num = p1Sq*(p3.getX() - p2.getX()) + p2Sq*(p1.getX() - p3.getX()) + p3Sq*(p2.getX() - p1.getX());
 		circleY = num / (2.0f * stred);
-        
-//                stred = distance(new Point( (int)circleX, (int)circleY), p1);
-                stred = distance(new Point( circleX, circleY), p1);
+//urcit stredovu Z suradnicu GULE !!!
+                num = p4Sq*(p3.getX() - p2.getX()) + p5Sq*(p1.getX() - p3.getX()) + p6Sq*(p2.getX() - p1.getX());
+                circleZ = num / (2.0f * stred);
+
+                stred = distance(new Point( circleX, circleY, circleZ), p1); //Polomer
 	    }
 
 	// Radius
 	//r = c.distance(p1);
 //        circlesA.add(new Circle(premenna,circleX,circleY)); //adding value to ArrayList
 //        System.out.print("ň");
-        return new Circle(stred,circleX,circleY);
+        return new Circle(stred,circleX,circleY,circleZ);
     
     }
 

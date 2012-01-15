@@ -13,6 +13,7 @@ public class Point implements Comparable{
 //real
     public double  x;
     public double  y;
+    public double  z;
 //metrika
     private double min;
     private double avg;
@@ -20,14 +21,16 @@ public class Point implements Comparable{
     private boolean used = false;
 
     //public Point(int ID,float x,float y){
-    public Point(int ID,double x, double y){
+    public Point(int ID,double x, double y, double z){
         this.ID=ID;
         this.x=x;
         this.y=y;
+        this.z=z;
     }
-    public Point(double x,double y){
+    public Point(double x,double y, double z){
         this.x=x;
         this.y=y;
+        this.z=z;
     }
 
     /**
@@ -83,6 +86,14 @@ public class Point implements Comparable{
         this.y = y;
     }
 
+//get set z
+    public double  getZ() {
+        return z;
+    }
+    public void setZ(double z) {
+        this.z = z;
+    }
+
 //used
     public boolean isUsed() {
         return used;
@@ -92,7 +103,7 @@ public class Point implements Comparable{
     }
 //to string
     public String toString (){
-        return "Point: "+ID+","+x+","+y+","+isUsed();
+        return "Point: "+ID+","+x+","+y+","+z+","+isUsed();
     }
 
     /**
