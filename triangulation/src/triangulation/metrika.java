@@ -85,7 +85,7 @@ public class metrika {
      * distance from A to B
      * return double
      */
-    public double distance(Point a, Point b) {
+    public double distance(Point a, Point b) {  
         double dx, dy, dz;
 
         dx = a.getX() - b.getX();

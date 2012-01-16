@@ -490,29 +490,32 @@ public class Triangulate {
      * distance from A to B
      * return double
      */
-    public double distance(Point a, Point b) {
-        double dx, dy;
+    public double distance(Point a, Point b) { 
+        double dx, dy, dz;
 
         dx = a.getX() - b.getX();
         dy = a.getY() - b.getY();
+        dz = a.getZ() - b.getZ();
         //System.out.println((double)Math.sqrt((double)(dx * dx + dy * dy)));
-        return (double) Math.sqrt((double) (dx * dx + dy * dy));
+        return (double) Math.sqrt((double) (dx * dx + dy * dy + dz * dz));
     }
 
     /**
      * distance from EDGE
      */
     public double distanceFromEdge(Edge e, Point b) {
-        double dx, dy;
-        double x, y;
+        double dx, dy, dz;
+        double x, y, z;
 
         x = (e.l.getX() + e.r.getX()) / 2;
         y = (e.l.getY() + e.r.getY()) / 2;
+        z = (e.l.getZ() + e.r.getZ()) / 2;
 
         dx = x - b.getX();
         dy = y - b.getY();
+        dz = z - b.getZ();
         //System.out.println((double)Math.sqrt((double)(dx * dx + dy * dy)));
-        return (double) Math.sqrt((double) (dx * dx + dy * dy));
+        return (double) Math.sqrt((double) (dx * dx + dy * dy + dz * dz));
     }
 
 
