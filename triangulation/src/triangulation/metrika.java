@@ -80,7 +80,6 @@ public class metrika {
         return point_cloud1;
     }
 
-
     /**
      * distance from A to B
      * return double
@@ -91,8 +90,7 @@ public class metrika {
         dx = a.getX() - b.getX();
         dy = a.getY() - b.getY();
         dz = a.getZ() - b.getZ();
-        //System.out.println((float)Math.sqrt((double)(dx * dx + dy * dy)));
-//        return round( Math.sqrt((double) (dx * dx + dy * dy)),4);
+        
         return  Math.sqrt((double) (dx * dx + dy * dy + dz * dz));
     }
 

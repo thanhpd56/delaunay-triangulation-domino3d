@@ -4,10 +4,19 @@ import com.sun.org.apache.bcel.internal.generic.RETURN;
 import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 import java.applet.*;
 import java.awt.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.Math;
 import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import triangulation.Point;
 import java.util.Random;
 import sun.org.mozilla.javascript.internal.ast.Jump;
@@ -35,6 +44,7 @@ public class Triangulate {
     ArrayList<Edge> convexA = new ArrayList<Edge>();
     ArrayList<Edge> edges1 = new ArrayList<Edge>();
     ArrayList<Point> point_cloud1 = new ArrayList<Point>();  //array of points2d  // ID, X, Y, used(bool)
+    ArrayList<Face> face = new ArrayList<Face>();  //array of faces
     
     /**
      * @param args the command line arguments
@@ -42,8 +52,8 @@ public class Triangulate {
     public static void main(String[] args) {
         //System.out.println((int)(Math.random() * Math.random() * 100));
         System.out.println("////////////////////////////////////////////////////////////////////////////////////");
-        System.out.println("Triangulation algorithm of Boris Nikolaevich Delaunay, code by Dominik Januvka. 2011");
-        System.out.println("Version 2.13 , NEWS: new 3angulation method");
+        System.out.println("Triangulation algorithm of Boris Nikolaevich Delaunay, code by Dominik Januvka. 2011-2012");
+        System.out.println("Version 3 , NEWS: 3D");
         System.out.println("////////////////////////////////////////////////////////////////////////////////////");
         // volanie spustenia aplikacie
         Triangulate triangulate = new Triangulate();
@@ -119,7 +129,7 @@ public class Triangulate {
          */
         triangulate();  //ostatne 3uholniky
         
-        //dokreslime konvexne trojuholniky po krajoch (mozme, NEMUSIME)
+        //dokreslime konvexne trojuholniky po krajoch v 2D (mozme, NEMUSIME)
         konvex();
         
         
@@ -127,6 +137,9 @@ public class Triangulate {
         Show gui = new Show();
         gui.setVisible(true);
         gui.Kresli(point_cloud1, edges1, circlesA);
+        
+        //export do wavefront OBJ
+        export();
     }
 
     /**
@@ -166,10 +179,54 @@ public class Triangulate {
 //        point_cloud1.add( new Point(8,30,30,1));
 //        point_cloud1.add( new Point(9,40,10,4));
 
-//        for (int i = 0; i < point_cloud.length; i++) {
-        for (int i = 0; i < amount; i++) {
-//            point_cloud1.add(new Point(i, /*(int)*/ round((Math.random() * Math.random() * 100),4), /*(int)*/ round((Math.random() * Math.random() * 100),10)));
-            point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100),  (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100)));
+////        for (int i = 0; i < point_cloud.length; i++) {
+//        for (int i = 0; i < amount; i++) {
+////            point_cloud1.add(new Point(i, /*(int)*/ round((Math.random() * Math.random() * 100),4), /*(int)*/ round((Math.random() * Math.random() * 100),10)));
+//            point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100),  (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100)));
+//        }
+        
+        
+//        /-----------
+        ArrayList<String[]> riadok = new ArrayList<String[]>();
+        String[] tokens;
+        try {
+            
+            // Open the file that is the first 
+            // command line parameter
+            FileInputStream fstream = new FileInputStream("sphere1.obj");
+            // Get the object of DataInputStream
+            DataInputStream in = new DataInputStream(fstream);
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            String strLine;
+            //Read File Line By Line
+            while ((strLine = br.readLine()) != null) {
+                // Print the content on the console
+//                System.out.println(strLine);
+                String delims = "[ ]+";
+                tokens = strLine.split(delims);
+                
+//                riadok.add(new String[2]);
+                riadok.add(tokens);
+                
+//                for (int i = 0; i < amount; i++) { //  >>> 561 <<<
+//                    point_cloud1.add(new Point(i, strLine.sp, , ));
+//                }
+                
+            }
+            //Close the input stream
+            in.close();
+        } catch (Exception e) {//Catch exception if any
+            System.err.println("Error: " + e.getMessage());
+        }
+        
+        int pc = 0;
+        for (int i = 0; i < riadok.size(); i++)
+        {
+            tokens = riadok.get(i);
+            if ("v".equals(tokens[0])) {
+                point_cloud1.add(new Point(pc++, Double.parseDouble(tokens[1]), Double.parseDouble(tokens[2]), Double.parseDouble(tokens[3])));
+            }
+
         }
 
     }
@@ -235,12 +292,13 @@ public class Triangulate {
             ArrayList invalid = new ArrayList(); // declares an array of integers        
             
             while (xxx != -1) {
+                if (xxx == -2) xxx = getRandomStartPoint(amount);
                 if (yyy == -1) {
                     invalid.add(point3); //nastane len raz.
                 } else {
                     invalid.add(yyy);   
                 }
-                if (invalid.contains(xxx)) {
+                if (invalid.contains(xxx) ) {
                     point3 = yyy;
                     System.out.println("break!");
                     break;
@@ -251,7 +309,8 @@ public class Triangulate {
                 }
             }
 
-            if (xxx == -1) {   // ak sme nasli nieco vhodnejsie tak to dame do POINT3
+            
+            if (xxx == -1 ) {   // ak sme nasli nieco vhodnejsie tak to dame do POINT3
                 point3 = yyy;
                 System.out.println("oprava");
             }
@@ -262,6 +321,7 @@ public class Triangulate {
         
         makeEdge(1, point_cloud1.get(startPointID), point_cloud1.get(point3));
         makeEdge(2, point_cloud1.get(point2), point_cloud1.get(point3));
+        face.add(new Face(point_cloud1.get(startPointID), point_cloud1.get(point2), point_cloud1.get(point3)));
         point_cloud1.get(point3).setUsed();
         ui.jProgressBar1.setValue(100*loading++/amount);
     }
@@ -283,14 +343,11 @@ public class Triangulate {
         int point3 = 0;
         
         
-//        for (int f = 0; f < point_cloud.length; f++) {
-//            point_cloud[f].setUsed();
-//        }
         
         for (int i = 0; i < edges1.size(); i++) {
             koniec = false;
 
-            //4 used points only
+            //4/for used points only
             for (int j = 0; j < point_cloud1.size(); j++) {
                 if (point_cloud1.get(j).isUsed()) {
                     if (edges1.get(i).l == point_cloud1.get(j) || edges1.get(i).r == point_cloud1.get(j)) { //todo: nie som si isty ci takto to mozem porovnavat
@@ -298,84 +355,35 @@ public class Triangulate {
                         xxx = circleHasPoint(edges1.get(i).l, edges1.get(i).r, point_cloud1.get(j));
                         
                         cyklus = false;
+                        if (xxx == -2) {
+                            break;
+//                            continue;
+                        }
                         if (xxx != -1) {
-/* //----->>
-                            int yyy = -1; //tu je zapamatany stale najvyhodnejsi bod !!!
-                            ArrayList invalid = new ArrayList(); // invalidne body
-
-                            while (xxx != -1) {
-                                if (yyy == -1) {
-                                    invalid.add(j); //nastane len raz.
-                                } else {
-                                    invalid.add(yyy);   
-                                }
-                                if (invalid.contains(xxx)) {
-                                    point3 = yyy;
-                                    System.out.println("break!");
-                                    cyklus = true;
-                                    break;
-                                } else {
-                                    yyy = xxx;
-                                    xxx = circleHasPoint(edges1.get(i).l, edges1.get(i).r, point_cloud1.get(xxx));
-                                    System.out.println("navstivil som " + yyy + ", novy je " + xxx + " " + j);
-                                }
-                            }
-//                            invalid.add(yyy);
-                            //vsetky odtialto su na kruznici
-                            System.out.println("°°°°" + invalid.indexOf(xxx) + "index" + xxx + " _ "+invalid.toString());
+                            // :D
+                        }else
+                            if (point_cloud1.get(j).getMin()*2 > distance(edges1.get(i).l, point_cloud1.get(j)) || point_cloud1.get(j).getMin()*2 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
                             
-                            if (cyklus) {
-                                //vyries kruznicove body 
-                                
-                                //najdi najblizsi bod "K" ku lavemu z "kruznice" 
-                                dist_last = Double.MAX_VALUE;
-                                for (int k = invalid.indexOf(xxx); k < invalid.size(); k++) {
-//                                    int f = (Integer)invalid.get(k);
-//                                    System.out.println(f);
-                                    dist = distance(edges1.get(i).l, point_cloud1.get((Integer)invalid.get(k)));
-                                    if (0 >= dist.compareTo(dist_last)) {
-                                        dist_last = dist;
-                                        point3 = (Integer)invalid.get(k);
-                                    }
-                                }
-                                
-                                if (edgeExist(edges1.get(i).l, point_cloud1.get(point3)) && edgeExist(edges1.get(i).r, point_cloud1.get(point3))) {
-                                    if (!edgeExist(edges1.get(i).l, point_cloud1.get(point3+1)) && !edgeExist(edges1.get(i).r, point_cloud1.get(point3+1))) {
-                                        makeEdge(edgeID++, point_cloud1.get(point3), point_cloud1.get(point3+1));
-                                        makeEdge(edgeID++, edges1.get(i).r,            point_cloud1.get(point3+1));
-                                        point_cloud1.get(point3+1).setUsed();
-                                        break;
-                                    }
-                                }else{
-                                    if (edgeExist(edges1.get(i).l, point_cloud1.get(point3+1)) && edgeExist(edges1.get(i).r, point_cloud1.get(point3+1))) {
-                                        if (!edgeExist(edges1.get(i).l, point_cloud1.get(point3)) && !edgeExist(edges1.get(i).r, point_cloud1.get(point3))) {
-                                            makeEdge(edgeID++, point_cloud1.get(point3+1), point_cloud1.get(point3));
-                                            makeEdge(edgeID++, edges1.get(i).l,            point_cloud1.get(point3));
-                                            point_cloud1.get(point3).setUsed();
-                                            break;
-                                        }
-                                    }
-                                }
-                            }        
-//---------<<  */
-   
-                        }else{
+                        {
                             //buď dva a skončim, alebo jeden a skončim.
                             if (!edgeExist(edges1.get(i).l, point_cloud1.get(j)) && !edgeExist(edges1.get(i).r, point_cloud1.get(j))) {
                                 makeEdge(edgeID++, edges1.get(i).l, point_cloud1.get(j));
                                 makeEdge(edgeID++, edges1.get(i).r, point_cloud1.get(j));
+                                face.add(new Face( edges1.get(i).l, point_cloud1.get(j), edges1.get(i).r));
                                 point_cloud1.get(j).setUsed();
                                 koniec = true;
-                                break; // skoncim for j
+                                break; // skoncim hladanie bodu for j
                             } else {
                                 if (!edgeExist(edges1.get(i).l, point_cloud1.get(j))) {
                                     makeEdge(edgeID++, edges1.get(i).l, point_cloud1.get(j));
+                                    face.add(new Face( edges1.get(i).l, point_cloud1.get(j), edges1.get(i).r));
                                     point_cloud1.get(j).setUsed();
                                     koniec = true;
                                     break; // skoncim for j
                                 } else {
                                     if (!edgeExist(edges1.get(i).r, point_cloud1.get(j))) {
                                         makeEdge(edgeID++, edges1.get(i).r, point_cloud1.get(j));
+                                        face.add(new Face( edges1.get(i).l, point_cloud1.get(j), edges1.get(i).r));
                                         point_cloud1.get(j).setUsed();
                                         koniec = true;
                                         break; // skoncim for j
@@ -383,72 +391,6 @@ public class Triangulate {
                                 }
                             }
                         }
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-//                        if (-1 == xxx) {
-//                            //toto teoreticky max len dvakrat zbehne, pre kazdy bod prave len jeden krat. bod je len na lavej strane  hrany, alebo na pravej
-//                            //kontrola ci existuje ten 3uholnik
-////                            if (!edgeExist(edges1.get(i).l, point_cloud1.get(j))) {
-////                                makeEdge(edgeID++, edges1.get(i).l, point_cloud1.get(j));
-////                            }
-////                            if (!edgeExist(edges1.get(i).r, point_cloud1.get(j))) {
-////                                makeEdge(edgeID++, edges1.get(i).r, point_cloud1.get(j));
-////                            }
-//                            
-//                            //buď dva a skončim, alebo jeden a skončim.
-//                            if (!edgeExist(edges1.get(i).l, point_cloud1.get(j)) && !edgeExist(edges1.get(i).r, point_cloud1.get(j))) {
-//                                makeEdge(edgeID++, edges1.get(i).l, point_cloud1.get(j));
-//                                makeEdge(edgeID++, edges1.get(i).r, point_cloud1.get(j));
-//                                point_cloud1.get(j).setUsed();
-//                                koniec = true;
-//                                break; // skoncim for j
-//                            }else{
-//                                if (!edgeExist(edges1.get(i).l, point_cloud1.get(j))) {
-//                                    makeEdge(edgeID++, edges1.get(i).l, point_cloud1.get(j));
-//                                    point_cloud1.get(j).setUsed();
-//                                    koniec = true;
-//                                    break; // skoncim for j
-//                                }else{
-//                                    if (!edgeExist(edges1.get(i).r, point_cloud1.get(j))) {
-//                                        makeEdge(edgeID++, edges1.get(i).r, point_cloud1.get(j));
-//                                        point_cloud1.get(j).setUsed();
-//                                        koniec = true;
-//                                        break; // skoncim for j
-//                                    }
-//                                }
-//                            }
-//                        }
-                        
                     }
                 }
             }
@@ -464,15 +406,23 @@ public class Triangulate {
                     } else {
                         
                         xxx = circleHasPoint(edges1.get(i).l, edges1.get(i).r, point_cloud1.get(j)); //tu by sa dalo opytat stale ci je v kruznici neaeky nepouzity bod a s nim pokracovat
+                        if (-2 == xxx) {
+                            break;
+//                            continue;
+                        }
                         if (-1 == xxx) {
+                            if (point_cloud1.get(j).getMin()*3 > distance(edges1.get(i).l, point_cloud1.get(j)) || point_cloud1.get(j).getMin()*3 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
+                            {
 //                         //make edges!!!
 //                            System.out.println(edgeID + "make edges!!!");
                             makeEdge(edgeID++, edges1.get(i).l, point_cloud1.get(j));
                             makeEdge(edgeID++, edges1.get(i).r, point_cloud1.get(j));
+                            face.add(new Face( edges1.get(i).l, point_cloud1.get(j), edges1.get(i).r));
                             point_cloud1.get(j).setUsed();
                             ui.jProgressBar1.setValue(100 * loading++ / amount);
 //                        koniec = false;
                             break;
+                            }
                         }
                     }
                 }
@@ -496,7 +446,7 @@ public class Triangulate {
         dx = a.getX() - b.getX();
         dy = a.getY() - b.getY();
         dz = a.getZ() - b.getZ();
-        //System.out.println((double)Math.sqrt((double)(dx * dx + dy * dy)));
+
         return (double) Math.sqrt((double) (dx * dx + dy * dy + dz * dz));
     }
 
@@ -553,6 +503,9 @@ public class Triangulate {
 //            if (i == a.getID() || i == b.getID() || i == c.getID() ) {} //do nothing
             if (point_cloud1.get(i).getID() == a.getID() || point_cloud1.get(i).getID() == b.getID() || point_cloud1.get(i).getID() == c.getID() ) {}
             else {
+                if (cc.getR() == 0.0) {
+                    return -2; //ked su body kolinearne
+                }
                 if (cc.isInside(point_cloud1.get(i))) {
                     return i;
                 }
@@ -567,62 +520,60 @@ public class Triangulate {
      * Compute the circle defined by three points (circumcircle).
      */
     private Circle circumcircle(Point p1,Point p2,Point p3) {
-	double stred;
-        double circleX, circleY, circleZ;
-        circleX = circleY = circleZ = 0;
+	double polomer = -1; 
+        double [] zlomok = new double[3];
+        double [] vektorAB = new double[3];
+        double [] vektorAC = new double[3];
+        double ooo ;
+        Double circleX, circleY, circleZ;
+        circleX = circleY = circleZ = new Double(0);
 
-	stred = crossProduct(p1, p2, p3); //TODO: zvysit presnost doubleDouble alebo nejake osetrit 4-uholniky (viac bodov na jednej kruznici)
-	if (stred != 0.0)
-	    {
-                double p1Sq, p2Sq, p3Sq, p4Sq, p5Sq, p6Sq;
+	polomer = crossProduct1(p1, p2, p3); //check colinear points
+	if (polomer != 0.0){
+                double a2, b2, c2;
                 double num;
 
-		p1Sq = p1.getX() * p1.getX() + p1.getY() * p1.getY();
-		p2Sq = p2.getX() * p2.getX() + p2.getY() * p2.getY();
-		p3Sq = p3.getX() * p3.getX() + p3.getY() * p3.getY();
-		p4Sq = p1.getX() * p1.getX() + p1.getZ() * p1.getZ(); //
-		p5Sq = p2.getX() * p2.getX() + p2.getZ() * p2.getZ(); //
-		p6Sq = p3.getX() * p3.getX() + p3.getZ() * p3.getZ(); //
-                //The Cartesian coordinates of the circumcenter are
-                //http://en.wikipedia.org/wiki/Circumscribed_circle
-                //http://upload.wikimedia.org/wikipedia/en/math/9/2/e/92e0593d517f4cdb4143e8c53f6db531.png
-                //http://everything2.com/title/Circumcenter
-/*          
-                      (dA*(Cy-By) + dB*(Ay-Cy) + dC*(By-Ay))
-                O'x = -----------------------------------------   (1a) 
-                      2*(Ax*(Cy-By) + Bx*(Ay-Cy) + Cx*(By-Ay))
+		a2 = p1.getX() * p1.getX() + p1.getY() * p1.getY() + p1.getZ() * p1.getZ();
+		b2 = p2.getX() * p2.getX() + p2.getY() * p2.getY() + p2.getZ() * p2.getZ();
+		c2 = p3.getX() * p3.getX() + p3.getY() * p3.getY() + p3.getZ() * p3.getZ();
+//http://upload.wikimedia.org/wikipedia/en/math/5/b/7/5b79fdc6617ad70147d4959235be7082.png
+//http://en.wikipedia.org/wiki/Tetrahedron
+                zlomok[0] = vektorovySucin(p2, p3).getX()*a2 + vektorovySucin(p3, p1).getX()*b2 + vektorovySucin(p1, p2).getX()*c2;
+                zlomok[1] = vektorovySucin(p2, p3).getY()*a2 + vektorovySucin(p3, p1).getY()*b2 + vektorovySucin(p1, p2).getY()*c2;
+                zlomok[2] = vektorovySucin(p2, p3).getZ()*a2 + vektorovySucin(p3, p1).getZ()*b2 + vektorovySucin(p1, p2).getZ()*c2;
+                
+                ooo = 2*p1.getX()*vektorovySucin(p2, p3).getX() + 2*p1.getY()*vektorovySucin(p2, p3).getY() + 2*p1.getZ()*vektorovySucin(p2, p3).getZ() ;
+                
+		circleX = zlomok[0]/ooo; if(circleX.equals(Double.NaN)) System.out.println("X NaN "+p1.toString()+p2.toString()+p3.toString());
+		circleY = zlomok[1]/ooo; if(circleY.equals(Double.NaN)) System.out.println("Y NaN "+p1.toString()+p2.toString()+p3.toString());
+                circleZ = zlomok[2]/ooo; if(circleZ.equals(Double.NaN)) System.out.println("Z NaN "+p1.toString()+p2.toString()+p3.toString());
 
-                      -(dA*(Cx-Bx) + dB*(Ax-Cx) + dC*(Bx-Ax))   
-                O'y = -----------------------------------------   (1b) 
-                      2*(Ax*(Cy-By) + Bx*(Ay-Cy) + Cx*(By-Ay))
-
-                dA  = Ax^2 + Ay^2           (2a)
-                dB  = Bx^2 + By^2           (2b)
-                dC  = Cx^2 + Cy^2           (2c)
-
-                O'= (O'x, O'y)... Cartesian coordinates of the circumcenter
-                A = (Ax, Ay)... the coordinates of vertex A of triangle ABC
-                B = (Bx, By)... the coordinates of vertex B of triangle ABC
-                C = (Cx, Cy)... the coordinates of vertex C of triangle ABC
-*/
-      
-		num = p1Sq*(p2.getY() - p3.getY()) + p2Sq*(p3.getY() - p1.getY()) + p3Sq*(p1.getY() - p2.getY());
-		circleX = num / (2.0f * stred);
-		num = p1Sq*(p3.getX() - p2.getX()) + p2Sq*(p1.getX() - p3.getX()) + p3Sq*(p2.getX() - p1.getX());
-		circleY = num / (2.0f * stred);
-//urcit stredovu Z suradnicu GULE !!!
-                num = p4Sq*(p3.getX() - p2.getX()) + p5Sq*(p1.getX() - p3.getX()) + p6Sq*(p2.getX() - p1.getX());
-                circleZ = num / (2.0f * stred);
-
-                stred = distance(new Point( circleX, circleY, circleZ), p1); //Polomer
+                polomer = distance(new Point( circleX, circleY, circleZ), p1); //Polomer
+                
+                //kontrola ci je bod xyz v rovine danej bodmi p1,p2,p3
+                //param rovnica
+                vektorAB [0] = p2.getX()-p1.getX(); //t
+                vektorAB [1] = p2.getY()-p1.getY(); //t
+                vektorAB [2] = p2.getZ()-p1.getZ(); //t
+                vektorAC [0] = p3.getX()-p1.getX(); //s
+                vektorAC [1] = p3.getY()-p1.getY(); //s
+                vektorAC [2] = p3.getZ()-p1.getZ(); //s
+//                p1.getX()
+                double s = (circleZ - p1.getZ() - (vektorAB[2]*(circleY-p1.getY()))/vektorAB[1] )/(vektorAC[2]-vektorAC[2]*vektorAC[1]/vektorAB[1] );
+                double t = (circleY - p1.getY() - s*vektorAC[1])/vektorAB[1] ;
+                double xxx = (p1.getX() + t*vektorAB[0] + s*vektorAC[0]);
+                if (circleX == xxx) {
+                    System.out.println("lezi v rovine! "+p1.toString()+p2.toString()+p3.toString());
+                }else{
+                    System.out.println("lezi v rovine? "+circleX+"=?="+xxx);
+                }
+                
+                
+                
+                
 	    }
 
-	// Radius
-	//r = c.distance(p1);
-//        circlesA.add(new Circle(premenna,circleX,circleY)); //adding value to ArrayList
-//        System.out.print("ň");
-        return new Circle(stred,circleX,circleY,circleZ);
-    
+        return new Circle(polomer,circleX,circleY,circleZ);
     }
 
     static double crossProduct(Point p1, Point p2, Point p3) {
@@ -633,10 +584,41 @@ public class Triangulate {
 	u2 =  p3.getX() - p1.getX();
 	v2 =  p3.getY() - p1.getY();
 
-	return u1 * v2 - v1 * u2;
+	return u1 * v2 - u2 * v1;
+    }
+    static double crossProduct1(Point p1, Point p2, Point p3) {
+	double a1, a2, a3, b1, b2, b3;
+        
+        a1 = p2.getX() - p1.getX() ;
+        a2 = p2.getY() - p1.getY() ;
+        a3 = p2.getZ() - p1.getZ() ;
+        b1 = p3.getX() - p1.getX() ;
+        b2 = p3.getY() - p1.getY() ;
+        b3 = p3.getZ() - p1.getZ() ;
+        
+//	u1 =  p2.getX() - p1.getX();
+//	v1 =  p2.getY() - p1.getY();
+//	u2 =  p3.getX() - p1.getX();
+//	v2 =  p3.getY() - p1.getY();
+
+//	return u1 * v2 - u2 * v1;
+//        System.out.println("_____" + (a2*b3-a3*b2) +"_"+ (a3*b1-a1*b3) +"_"+ (a1*b2-a2*b1));
+	double ret = a2*b3-a3*b2 + a3*b1-a1*b3 + a1*b2-a2*b1;
+	return ret;
+    }
+    
+    static Point vektorovySucin(Point a, Point b) {
+	double x, y, z;
+
+	x =  a.getY()*b.getZ() - a.getZ()*b.getY();
+	y =  a.getZ()*b.getX() - a.getX()*b.getZ();
+	z =  a.getX()*b.getY() - a.getY()*b.getX();
+
+	return new Point(x, y, z);
     }
 
     private void konvex() {
+        
         System.out.println("//TODO: implement THIS!");
     }
 
@@ -776,7 +758,83 @@ System.out.println("after sort"+point_cloud1.toString());
         return ppc;
     }
 
+    private void export()  {
+        Point p;
+                
+        FileWriter file = null;
+        try {
+            file = new FileWriter("mesh.obj");
+            BufferedWriter out = new BufferedWriter(file);
+            out.write("\n # Simple Wavefront OBJ file ");
+            out.write("\n # Triangulation algorithm of Boris Nikolaevich Delaunay, code by Dominik Januvka. 2011-2012 \n");
+            //export
+            
+            //Vertex data: v Geometric vertices  
+            /*
+            vt Texture vertices
+            vn Vertex normals
+            vp Parameter space vertices
+            */
+            out.write("\n ");
+            for (int i = 0; i < point_cloud1.size(); i++) {
+                out.write("\n v " + point_cloud1.get(i).getX() + " "+ point_cloud1.get(i).getY() + " "+ point_cloud1.get(i).getZ() );
+            }
+            out.write("\n ");
+            
+            //Elements: f Face
+            for (int i = 0; i < face.size(); i++) {
+                out.write("\n f " + face.get(i).getFace() ); //todo: vrati ID pointov / neviem ci to je dobre?
+            }
+            
+            
+            //koniec
+            out.close();
+            System.out.println("EXPORT: Your file has been written");
+        } catch (IOException ex) {
+            Logger.getLogger(Triangulate.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                file.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Triangulate.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
 }
 
 
 
+
+
+
+/* //circumcircle
+ * {
+                double p1Sq, p2Sq, p3Sq, p4Sq, p5Sq, p6Sq;
+                double num;
+
+		p1Sq = p1.getX() * p1.getX() + p1.getY() * p1.getY();
+		p2Sq = p2.getX() * p2.getX() + p2.getY() * p2.getY();
+		p3Sq = p3.getX() * p3.getX() + p3.getY() * p3.getY();
+		p4Sq = p1.getX() * p1.getX() + p1.getZ() * p1.getZ(); //
+		p5Sq = p2.getX() * p2.getX() + p2.getZ() * p2.getZ(); //
+		p6Sq = p3.getX() * p3.getX() + p3.getZ() * p3.getZ(); //
+                //The Cartesian coordinates of the circumcenter are
+                //http://en.wikipedia.org/wiki/Circumscribed_circle
+                //http://upload.wikimedia.org/wikipedia/en/math/9/2/e/92e0593d517f4cdb4143e8c53f6db531.png
+                //http://everything2.com/title/Circumcenter
+
+      
+		num = p1Sq*(p2.getY() - p3.getY()) + p2Sq*(p3.getY() - p1.getY()) + p3Sq*(p1.getY() - p2.getY());
+		circleX = num / (2.0f * stred);
+		num = p1Sq*(p3.getX() - p2.getX()) + p2Sq*(p1.getX() - p3.getX()) + p3Sq*(p2.getX() - p1.getX());
+		circleY = num / (2.0f * stred);
+//urcit stredovu Z suradnicu GULE !!!
+                num = p4Sq*(p3.getX() - p2.getX()) + p5Sq*(p1.getX() - p3.getX()) + p6Sq*(p2.getX() - p1.getX());
+                circleZ = num / (2.0f * stred);
+
+                stred = distance(new Point( circleX, circleY, circleZ), p1); //Polomer
+	    }
+ 
+ 
+ */

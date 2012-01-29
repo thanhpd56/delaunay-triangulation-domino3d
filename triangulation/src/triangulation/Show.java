@@ -42,15 +42,15 @@ public class Show extends javax.swing.JFrame {
             }
         } catch (Exception e) {
         }
-        //body XZ
-        g.setColor(Color.RED);
-        try {
-            for (int i = 0; i < point_cloud1.size(); i++) {
-                g.fillOval((int)point_cloud1.get(i).getX() * scale + offset2, (int)point_cloud1.get(i).getZ() * scale + offset2, 5, 5);
-                g.drawString("" + point_cloud1.get(i).getID(), (int)point_cloud1.get(i).getX() * scale + offset2, (int)point_cloud1.get(i).getZ() * scale + offset2);
-            }
-        } catch (Exception e) {
-        }
+//        //body XZ
+//        g.setColor(Color.RED);
+//        try {
+//            for (int i = 0; i < point_cloud1.size(); i++) {
+//                g.fillOval((int)point_cloud1.get(i).getX() * scale + offset2, (int)point_cloud1.get(i).getZ() * scale + offset2, 5, 5);
+//                g.drawString("" + point_cloud1.get(i).getID(), (int)point_cloud1.get(i).getX() * scale + offset2, (int)point_cloud1.get(i).getZ() * scale + offset2);
+//            }
+//        } catch (Exception e) {
+//        }
 
         //ciary XY
         g.setColor(Color.blue);
@@ -68,22 +68,22 @@ public class Show extends javax.swing.JFrame {
             } 
         } catch (Exception e) {
         }
-        //ciary XZ
-        g.setColor(Color.blue);
-        try {
-            for (int i = 0; i < edges.size(); i++) {
-                g.drawLine((int)edges.get(i).l.getX() * scale + offset2, (int)edges.get(i).l.getZ() * scale + offset2, (int)edges.get(i).r.getX() * scale + offset2, (int)edges.get(i).r.getZ() * scale + offset2);
-                if (i==0||i==1||i==2) {g.setColor(Color.CYAN);
-                    g.drawString("" + point_cloud1.get(i).getID(), (int)point_cloud1.get(i).getX() * scale + offset2, (int)point_cloud1.get(i).getZ() * scale + offset2);
-                } else {g.setColor(Color.blue);
-                g.drawLine((int)edges.get(i).l.getX() * scale + offset2, (int)edges.get(i).l.getZ() * scale + offset2, (int)edges.get(i).r.getX() * scale + offset2, (int)edges.get(i).r.getZ() * scale + offset2);
-                }
-                
-                if(edges.get(i).getMidpoint()!=null)g.setColor(Color.GREEN);g.fillOval((int)edges.get(i).getMidpoint().getX() * scale + offset2, (int)edges.get(i).getMidpoint().getZ() * scale + offset2, 5, 5);g.setColor(Color.BLACK);g.drawString(""+i,(int)edges.get(i).getMidpoint().getX() * scale + offset2, (int)edges.get(i).getMidpoint().getZ() * scale + offset2);
-                //g.drawString(""+i, edges[i].l.getX()*scale+offset, edges[i].r.getY()*scale+offset );
-            } 
-        } catch (Exception e) {
-        }
+//        //ciary XZ
+//        g.setColor(Color.blue);
+//        try {
+//            for (int i = 0; i < edges.size(); i++) {
+//                g.drawLine((int)edges.get(i).l.getX() * scale + offset2, (int)edges.get(i).l.getZ() * scale + offset2, (int)edges.get(i).r.getX() * scale + offset2, (int)edges.get(i).r.getZ() * scale + offset2);
+//                if (i==0||i==1||i==2) {g.setColor(Color.CYAN);
+//                    g.drawString("" + point_cloud1.get(i).getID(), (int)point_cloud1.get(i).getX() * scale + offset2, (int)point_cloud1.get(i).getZ() * scale + offset2);
+//                } else {g.setColor(Color.blue);
+//                g.drawLine((int)edges.get(i).l.getX() * scale + offset2, (int)edges.get(i).l.getZ() * scale + offset2, (int)edges.get(i).r.getX() * scale + offset2, (int)edges.get(i).r.getZ() * scale + offset2);
+//                }
+//                
+//                if(edges.get(i).getMidpoint()!=null)g.setColor(Color.GREEN);g.fillOval((int)edges.get(i).getMidpoint().getX() * scale + offset2, (int)edges.get(i).getMidpoint().getZ() * scale + offset2, 5, 5);g.setColor(Color.BLACK);g.drawString(""+i,(int)edges.get(i).getMidpoint().getX() * scale + offset2, (int)edges.get(i).getMidpoint().getZ() * scale + offset2);
+//                //g.drawString(""+i, edges[i].l.getX()*scale+offset, edges[i].r.getY()*scale+offset );
+//            } 
+//        } catch (Exception e) {
+//        }
 
 //        //kruhy
 //        g.setColor(Color.ORANGE);
