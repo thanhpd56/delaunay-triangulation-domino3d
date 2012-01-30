@@ -193,7 +193,7 @@ public class Triangulate {
             
             // Open the file that is the first 
             // command line parameter
-            FileInputStream fstream = new FileInputStream("sphere1.obj");
+            FileInputStream fstream = new FileInputStream("tea.obj");
             // Get the object of DataInputStream
             DataInputStream in = new DataInputStream(fstream);
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -362,7 +362,7 @@ public class Triangulate {
                         if (xxx != -1) {
                             // :D
                         }else
-                            if (point_cloud1.get(j).getMin()*2 > distance(edges1.get(i).l, point_cloud1.get(j)) || point_cloud1.get(j).getMin()*2 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
+                            if (point_cloud1.get(j).getMin()*4 > distance(edges1.get(i).l, point_cloud1.get(j)) || point_cloud1.get(j).getMin()*4 > distance(edges1.get(i).r, point_cloud1.get(j)) ) //urcenie neakej maximalnej dlzky hrany
                             
                         {
                             //buď dva a skončim, alebo jeden a skončim.
@@ -411,7 +411,7 @@ public class Triangulate {
 //                            continue;
                         }
                         if (-1 == xxx) {
-                            if (point_cloud1.get(j).getMin()*3 > distance(edges1.get(i).l, point_cloud1.get(j)) || point_cloud1.get(j).getMin()*3 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
+                            if (point_cloud1.get(j).getMin()*4 > distance(edges1.get(i).l, point_cloud1.get(j)) || point_cloud1.get(j).getMin()*4 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
                             {
 //                         //make edges!!!
 //                            System.out.println(edgeID + "make edges!!!");
@@ -522,51 +522,87 @@ public class Triangulate {
     private Circle circumcircle(Point p1,Point p2,Point p3) {
 	double polomer = -1; 
         double [] zlomok = new double[3];
-        double [] vektorAB = new double[3];
-        double [] vektorAC = new double[3];
-        double ooo ;
+        double [] AC = new double[3];
+        double [] BC = new double[3];
+        Point acxbc;
+        double spodok, ac2, bc2 ;
         Double circleX, circleY, circleZ;
         circleX = circleY = circleZ = new Double(0);
 
 	polomer = crossProduct1(p1, p2, p3); //check colinear points
 	if (polomer != 0.0){
-                double a2, b2, c2;
-                double num;
+//                double ac, bc;
+            
+            AC[0] = p1.getX()-p3.getX() ;
+            AC[1] = p1.getY()-p3.getY() ;
+            AC[2] = p1.getZ()-p3.getZ() ;
+            BC[0] = p2.getX()-p3.getX() ;
+            BC[1] = p2.getY()-p3.getY() ;
+            BC[2] = p2.getZ()-p3.getZ() ;
+            
+            ac2 = AC[0]*AC[0] + AC[1]*AC[1] + AC[2]*AC[2];
+            bc2 = BC[0]*BC[0] + BC[1]*BC[1] + BC[2]*BC[2];
+            
+//            AC[0] = ac2*BC[0] - bc2*AC[0];
+//            AC[1] = ac2*BC[1] - bc2*AC[1];
+//            AC[2] = ac2*BC[2] - bc2*AC[2];
 
-		a2 = p1.getX() * p1.getX() + p1.getY() * p1.getY() + p1.getZ() * p1.getZ();
-		b2 = p2.getX() * p2.getX() + p2.getY() * p2.getY() + p2.getZ() * p2.getZ();
-		c2 = p3.getX() * p3.getX() + p3.getY() * p3.getY() + p3.getZ() * p3.getZ();
-//http://upload.wikimedia.org/wikipedia/en/math/5/b/7/5b79fdc6617ad70147d4959235be7082.png
-//http://en.wikipedia.org/wiki/Tetrahedron
-                zlomok[0] = vektorovySucin(p2, p3).getX()*a2 + vektorovySucin(p3, p1).getX()*b2 + vektorovySucin(p1, p2).getX()*c2;
-                zlomok[1] = vektorovySucin(p2, p3).getY()*a2 + vektorovySucin(p3, p1).getY()*b2 + vektorovySucin(p1, p2).getY()*c2;
-                zlomok[2] = vektorovySucin(p2, p3).getZ()*a2 + vektorovySucin(p3, p1).getZ()*b2 + vektorovySucin(p1, p2).getZ()*c2;
+            acxbc = vektorovySucin(new Point(AC[0], AC[1], AC[2]), new Point(BC[0], BC[1], BC[2]));
+            spodok = (acxbc.getX()*acxbc.getX() + acxbc.getY()*acxbc.getY() + acxbc.getZ()*acxbc.getZ())*2;
+            acxbc = vektorovySucin(new Point(ac2*BC[0] - bc2*AC[0], ac2*BC[1] - bc2*AC[1], ac2*BC[2] - bc2*AC[2]), acxbc );
+            
+            circleX = acxbc.getX()/spodok + p3.getX();
+            circleY = acxbc.getY()/spodok + p3.getY();
+            circleZ = acxbc.getZ()/spodok + p3.getZ();
+            
+//
+//		a2 = p1.getX() * p1.getX() + p1.getY() * p1.getY() + p1.getZ() * p1.getZ();
+//		b2 = p2.getX() * p2.getX() + p2.getY() * p2.getY() + p2.getZ() * p2.getZ();
+//		c2 = p3.getX() * p3.getX() + p3.getY() * p3.getY() + p3.getZ() * p3.getZ();
+////http://upload.wikimedia.org/wikipedia/en/math/5/b/7/5b79fdc6617ad70147d4959235be7082.png
+////http://en.wikipedia.org/wiki/Tetrahedron
+//                zlomok[0] = vektorovySucin(p2, p3).getX()*a2 + vektorovySucin(p3, p1).getX()*b2 + vektorovySucin(p1, p2).getX()*c2;
+//                zlomok[1] = vektorovySucin(p2, p3).getY()*a2 + vektorovySucin(p3, p1).getY()*b2 + vektorovySucin(p1, p2).getY()*c2;
+//                zlomok[2] = vektorovySucin(p2, p3).getZ()*a2 + vektorovySucin(p3, p1).getZ()*b2 + vektorovySucin(p1, p2).getZ()*c2;
+//                
+//                ooo = 2*p1.getX()*vektorovySucin(p2, p3).getX() + 2*p1.getY()*vektorovySucin(p2, p3).getY() + 2*p1.getZ()*vektorovySucin(p2, p3).getZ() ;
                 
-                ooo = 2*p1.getX()*vektorovySucin(p2, p3).getX() + 2*p1.getY()*vektorovySucin(p2, p3).getY() + 2*p1.getZ()*vektorovySucin(p2, p3).getZ() ;
-                
-		circleX = zlomok[0]/ooo; if(circleX.equals(Double.NaN)) System.out.println("X NaN "+p1.toString()+p2.toString()+p3.toString());
-		circleY = zlomok[1]/ooo; if(circleY.equals(Double.NaN)) System.out.println("Y NaN "+p1.toString()+p2.toString()+p3.toString());
-                circleZ = zlomok[2]/ooo; if(circleZ.equals(Double.NaN)) System.out.println("Z NaN "+p1.toString()+p2.toString()+p3.toString());
+//		circleX = zlomok[0]/ooo; 
+                if(circleX.equals(Double.NaN)) System.out.println("X NaN "+p1.toString()+p2.toString()+p3.toString());
+//		circleY = zlomok[1]/ooo; 
+                if(circleY.equals(Double.NaN)) System.out.println("Y NaN "+p1.toString()+p2.toString()+p3.toString());
+//                circleZ = zlomok[2]/ooo; 
+                if(circleZ.equals(Double.NaN)) System.out.println("Z NaN "+p1.toString()+p2.toString()+p3.toString());
 
                 polomer = distance(new Point( circleX, circleY, circleZ), p1); //Polomer
+  
                 
-                //kontrola ci je bod xyz v rovine danej bodmi p1,p2,p3
-                //param rovnica
-                vektorAB [0] = p2.getX()-p1.getX(); //t
-                vektorAB [1] = p2.getY()-p1.getY(); //t
-                vektorAB [2] = p2.getZ()-p1.getZ(); //t
-                vektorAC [0] = p3.getX()-p1.getX(); //s
-                vektorAC [1] = p3.getY()-p1.getY(); //s
-                vektorAC [2] = p3.getZ()-p1.getZ(); //s
-//                p1.getX()
-                double s = (circleZ - p1.getZ() - (vektorAB[2]*(circleY-p1.getY()))/vektorAB[1] )/(vektorAC[2]-vektorAC[2]*vektorAC[1]/vektorAB[1] );
-                double t = (circleY - p1.getY() - s*vektorAC[1])/vektorAB[1] ;
-                double xxx = (p1.getX() + t*vektorAB[0] + s*vektorAC[0]);
-                if (circleX == xxx) {
-                    System.out.println("lezi v rovine! "+p1.toString()+p2.toString()+p3.toString());
-                }else{
-                    System.out.println("lezi v rovine? "+circleX+"=?="+xxx);
-                }
+                
+                
+                
+                
+                
+                
+                
+                
+                
+//                //kontrola ci je bod xyz v rovine danej bodmi p1,p2,p3
+//                //param rovnica
+//                vektorAB [0] = p2.getX()-p1.getX(); //t
+//                vektorAB [1] = p2.getY()-p1.getY(); //t
+//                vektorAB [2] = p2.getZ()-p1.getZ(); //t
+//                vektorAC [0] = p3.getX()-p1.getX(); //s
+//                vektorAC [1] = p3.getY()-p1.getY(); //s
+//                vektorAC [2] = p3.getZ()-p1.getZ(); //s
+////                p1.getX()
+//                double s = (circleZ - p1.getZ() - (vektorAB[2]*(circleY-p1.getY()))/vektorAB[1] )/(vektorAC[2]-vektorAC[2]*vektorAC[1]/vektorAB[1] );
+//                double t = (circleY - p1.getY() - s*vektorAC[1])/vektorAB[1] ;
+//                double xxx = (p1.getX() + t*vektorAB[0] + s*vektorAC[0]);
+//                if (circleX == xxx) {
+//                    System.out.println("lezi v rovine! "+p1.toString()+p2.toString()+p3.toString());
+//                }else{
+//                    System.out.println("lezi v rovine? "+circleX+"=?="+xxx);
+//                }
                 
                 
                 
