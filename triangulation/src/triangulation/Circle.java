@@ -27,31 +27,31 @@ public class Circle {
 //        a=round(a,4);   //zaokruhlime na 4 desatinne cisla
         Double b = this.getR();
 //        b=round(b,4);  //zaokruhlime --//--
-	if (0 > a.compareTo(b)){
+        if (0 > a.compareTo(b)){
 //System.out.println("/"+a+"_<_"+b+" "+(0 > a.compareTo(b)));
             if (round(a,4).compareTo(round(b,4)) == 0 ) {
                 System.out.println("    trolololo    ..."); //ked su body na jednej kruznici
             }
-//	if (this.distance(p) < this.getR() )
+//      if (this.distance(p) < this.getR() )
 //if (0 >= dist.compareTo(dist_last)) {
-	    return true;
+            return true;
         }
-	else
-	    return false;
+        else
+            return false;
     }
     
         public int isInside1(Point p) {
         Double a = this.distance(p);
         Double b = this.getR();
-	if (0 > a.compareTo(b)){
+        if (0 > a.compareTo(b)){
             if (round(a,4).compareTo(round(b,4)) == 0 ) {
 //                System.out.println("    trolololo    ..."); //ked su body na jednej kruznici
                 return 0;
             }
-	    return 1; //true
+            return 1; //true
         }
-	else
-	    return -1; //false
+        else
+            return -1; //false
     }
 
     /**
