@@ -29,13 +29,29 @@ public class Circle {
 //        b=round(b,4);  //zaokruhlime --//--
 	if (0 > a.compareTo(b)){
 //System.out.println("/"+a+"_<_"+b+" "+(0 > a.compareTo(b)));
-            
+            if (round(a,4).compareTo(round(b,4)) == 0 ) {
+                System.out.println("    trolololo    ..."); //ked su body na jednej kruznici
+            }
 //	if (this.distance(p) < this.getR() )
 //if (0 >= dist.compareTo(dist_last)) {
 	    return true;
         }
 	else
 	    return false;
+    }
+    
+        public int isInside1(Point p) {
+        Double a = this.distance(p);
+        Double b = this.getR();
+	if (0 > a.compareTo(b)){
+            if (round(a,4).compareTo(round(b,4)) == 0 ) {
+//                System.out.println("    trolololo    ..."); //ked su body na jednej kruznici
+                return 0;
+            }
+	    return 1; //true
+        }
+	else
+	    return -1; //false
     }
 
     /**
@@ -103,6 +119,12 @@ public class Circle {
         Rval = Rval * p;
         double tmp = Math.round(Rval);
         return  tmp / p;
+    }
+    
+//to string
+    @Override
+    public String toString (){
+        return "CCCCCC: "+x+","+y+","+z;
     }
 
 

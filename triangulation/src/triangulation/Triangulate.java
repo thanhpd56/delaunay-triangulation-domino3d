@@ -193,7 +193,7 @@ public class Triangulate {
             
             // Open the file that is the first 
             // command line parameter
-            FileInputStream fstream = new FileInputStream("tea.obj");
+            FileInputStream fstream = new FileInputStream("sphere.obj");
             // Get the object of DataInputStream
             DataInputStream in = new DataInputStream(fstream);
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -356,7 +356,7 @@ public class Triangulate {
                         
                         cyklus = false;
                         if (xxx == -2) {
-                            break;
+                            break;  //kolinearne body
 //                            continue;
                         }
                         if (xxx != -1) {
@@ -389,6 +389,7 @@ public class Triangulate {
                                         break; // skoncim for j
                                     }
                                 }
+                                face.add(new Face( edges1.get(i).l, point_cloud1.get(j), edges1.get(i).r));
                             }
                         }
                     }
@@ -423,6 +424,18 @@ public class Triangulate {
 //                        koniec = false;
                             break;
                             }
+                        }
+                        if (xxx < -2 ) {  //bod na kruznici sposobi vytvorenie bodu stredu kruznice a pridanie do mraacna bodov
+                            xxx = -(xxx+3);
+                            Circle cc = circlesA.get(xxx);
+//                            System.out.println(">>>>>>>>>>>"+cc.toString());
+                            Point pp = new Point(cc.getX(), cc.getY(), cc.getZ()) ;
+                            pp.setUsed();
+                            point_cloud1.add( pp );
+                            
+                            makeEdge(edgeID++, edges1.get(i).l, pp );
+                            makeEdge(edgeID++, edges1.get(i).r, pp );
+                            face.add(new Face( edges1.get(i).l, pp, edges1.get(i).r));
                         }
                     }
                 }
@@ -506,8 +519,13 @@ public class Triangulate {
                 if (cc.getR() == 0.0) {
                     return -2; //ked su body kolinearne
                 }
-                if (cc.isInside(point_cloud1.get(i))) {
-                    return i;
+//                if (cc.isInside(point_cloud1.get(i))) {
+                if (cc.isInside1(point_cloud1.get(i)) == 1 ) {
+                    return i;  //bod i je dnuka
+                }else if(cc.isInside1(point_cloud1.get(i)) == 0){
+                    circlesA.add(cc); 
+                    return -(circlesA.indexOf(cc) + 3);  //pozor!!! moze nastat chyba, potom da -1 a to vrati -2
+                    //bod je na kruznici -> urob bod v mieste stredu kruznice
                 }
             }
         } 
