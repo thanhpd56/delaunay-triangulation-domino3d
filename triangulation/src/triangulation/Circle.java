@@ -21,6 +21,7 @@ public class Circle {
 
     /*
      * metoda na urcenie ci dany bod je vo vnutri kruznice
+     * false, //ked nie je vo vnutri 3uholnika dalsi bod
      */
     public boolean isInside(Point p) {
         Double a = this.distance(p);
@@ -30,16 +31,18 @@ public class Circle {
         if (0 > a.compareTo(b)){
 //System.out.println("/"+a+"_<_"+b+" "+(0 > a.compareTo(b)));
             if (round(a,4).compareTo(round(b,4)) == 0 ) {
-                System.out.println("    trolololo    ..."); //ked su body na jednej kruznici
+//                System.out.println("    trolololo    ..."); //ked su body na jednej kruznici
             }
 //      if (this.distance(p) < this.getR() )
 //if (0 >= dist.compareTo(dist_last)) {
             return true;
         }
         else
-            return false;
+            return false; //ked nie je vo vnutri 3uholnika dalsi bod
     }
     
+    
+//********-------
         public int isInside1(Point p) {
         Double a = this.distance(p);
         Double b = this.getR();
@@ -51,7 +54,7 @@ public class Circle {
             return 1; //true
         }
         else
-            return -1; //false
+            return -1; //false //ked nie je vo vnutri 3uholnika dalsi bod
     }
 
     /**

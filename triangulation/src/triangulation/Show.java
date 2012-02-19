@@ -22,7 +22,7 @@ public class Show extends javax.swing.JFrame {
 //    Edge[] edges;
     ArrayList<Point> point_cloud1;
     ArrayList<Edge> edges;
-    int scale = 11;
+    int scale = 5;
 //    int scale = 2;
     int offset = 50;
     int offset2 = 200;
