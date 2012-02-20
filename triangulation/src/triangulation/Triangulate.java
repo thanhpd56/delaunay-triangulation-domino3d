@@ -86,6 +86,7 @@ public class Triangulate {
         if (collapse) {
             point_cloud1 = collapse(Double.parseDouble(ui.getTolerance().getText()));
 //            System.out.println("colapse tolerance " + Double.parseDouble(ui.getTolerance().getText()));
+            System.out.println("colapse >> amount " + point_cloud1.size() );
             amount = point_cloud1.size();
         } else {
 //            for (int i = 0; i < amount; i++) {
@@ -782,7 +783,7 @@ System.out.println("after sort"+point_cloud1.toString());
         Point[] ppp = new Point[point_cloud1.size()];
 //        Double tol = 0.001;
 
-        System.out.println("a>>>>" + point_cloud1.size() + point_cloud1.toString());
+        System.out.println("a>>>>" + point_cloud1.size() + "<<<" + point_cloud1.toString());
 //            for (int i = 0; i < point_cloud1.size(); i++) {
 //                for (int j = 0; j < point_cloud1.size(); j++) {
 //                    if (i != j) {
@@ -815,7 +816,8 @@ System.out.println("after sort"+point_cloud1.toString());
 //                            point_cloud1.add(new Point( k++, ((point_cloud[i].getX()+point_cloud[j].getX())/2), ((point_cloud[i].getY()+point_cloud[j].getY())/2)));
 //                            point_cloud[i].setX((point_cloud[i].getX()+point_cloud[j].getX())/2);
 //                            point_cloud[i].setY((point_cloud[i].getY()+point_cloud[j].getY())/2);
-                        ppp[i] = new Point(i, round((ppp[i].getX() + ppp[j].getX()) / 2,10), round((ppp[i].getY() + ppp[j].getY()) / 2,4));
+                        ppp[i] = new Point(i, round((ppp[i].getX() + ppp[j].getX()) / 2,10), round((ppp[i].getY() + ppp[j].getY()) / 2,4), round((ppp[i].getZ() + ppp[j].getZ()) / 2,10)); 
+                                           //toto vrati aj viac bodov s rovnakym pointID
                         ppp[j] = null;
                     } else {
 //                            point_cloud1.add(point_cloud[i]);
@@ -828,18 +830,22 @@ System.out.println("after sort"+point_cloud1.toString());
         
         
 //        System.out.println("2"+point_cloud1.toString());
-        
+        int j = 0; //prepisanie ciselID bodov, kedze mohli vzniknut viacere s rovn. cislomID
         for (int i = 0; i < ppp.length; i++) {
             if (ppp[i] != null) {
+                ppp[i].setID(j++);
                 ppc.add(ppp[i]);
 //                System.out.println(ppp[i].toString());
             }
         }
-        System.out.println("b>>>>" + ppc.size() + ppc.toString());
+        System.out.println("b>>>>" + ppc.size() + "X"+j + "<<<" + ppc.toString());
         
         return ppc;
     }
 
+    /**
+     * export to OBJ
+     */
     private void export()  {
         Point p;
                 
@@ -865,7 +871,7 @@ System.out.println("after sort"+point_cloud1.toString());
             
             //Elements: f Face
             for (int i = 0; i < face.size(); i++) {
-                out.write("\n f " + face.get(i).getFace() ); //todo: vrati ID pointov / neviem ci to je dobre?
+                out.write("\n f " + face.get(i).toString() ); //todo: vrati ID pointov / neviem ci to je dobre?
             }
             
             

@@ -1,7 +1,7 @@
 package triangulation;
 
 /**
- * face ma tri vrcholy
+ * face ma tri vrcholy: x, y, z
  * @author Domino
  */
 class Face {
@@ -15,7 +15,8 @@ class Face {
     /**
      * @return the face
      */
-    public String getFace() {
+    @Override
+    public String toString() {
         return " "+ x +" "+ y +" "+ z +" ";
     }
     
