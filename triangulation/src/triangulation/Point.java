@@ -11,9 +11,9 @@ public class Point implements Comparable{
 //    private int x;
 //    private int y;
 //real
-    public double  x;
-    public double  y;
-    public double  z;
+    private double  x;
+    private double  y;
+    private double  z;
 //metrika
     private double min;
     private double avg;

@@ -288,7 +288,7 @@ public class Triangulate {
         System.out.println("third point. distance from edge: " + dist_last + ", point: " + point_cloud1.get(point3).toString());
         
         //Alg na hladanie vhodnejsieho kandidata!
-        int xxx = circleHasPoint(point_cloud1.get(startPointID), point_cloud1.get(point2), point_cloud1.get(point3));
+        int xxx = circleHasPoint1(point_cloud1.get(startPointID), point_cloud1.get(point2), point_cloud1.get(point3));
         if (xxx != -1) {
             int yyy = -1;
             ArrayList invalid = new ArrayList(); // declares an array of integers        
@@ -306,7 +306,7 @@ public class Triangulate {
                     break;
                 } else {
                     yyy = xxx;
-                    xxx = circleHasPoint(point_cloud1.get(startPointID), point_cloud1.get(point2), point_cloud1.get(xxx));
+                    xxx = circleHasPoint1(point_cloud1.get(startPointID), point_cloud1.get(point2), point_cloud1.get(xxx));
                     System.out.println("navstivil som " + yyy + ", novy je " + xxx);
                 }
             }
@@ -336,6 +336,7 @@ public class Triangulate {
     private void triangulate() {
         int edgeID = 3;
         int edgeJ = -1;
+        int edgeK = -1;
         int xxx;
         Double dist = new Double(0);
         Double dist_last = Double.MAX_VALUE;
@@ -355,14 +356,14 @@ public class Triangulate {
                         
                         //    kontrola ci mam najvyhodnejsi, najmensi, 3uholnik a az tak striangulovat ALEBO ci je bod na vyhovujucej(blizkej) rovine
                         //    potom zacat robit trojuholnik >>> code <<<
-//                        if (xxx != -2 && xxx == -1) {
-                        if ( xxx == -1) {
+//                        if ( xxx == -1) {
+                        if ( xxx != -2 && xxx != -3) {
 
 //                            break;
                             dist = circlesA.get(circlesA.size()-1).getR();  //posledny pridany kruh neobsahujuci bod
 //                            dist = distanceFromEdge(edges1.get(i), point_cloud1.get(j));  
-                            if (point_cloud1.get(j).getMin()*4 > distance(edges1.get(i).l, point_cloud1.get(j)) 
-                                    || point_cloud1.get(j).getMin()*4 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
+                            if (point_cloud1.get(j).getMin()*12 > distance(edges1.get(i).l, point_cloud1.get(j)) 
+                                    || point_cloud1.get(j).getMin()*12 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
                             {
                                 if (dist.compareTo(dist_last) < 0) {
                                     dist_last = dist;
@@ -376,8 +377,9 @@ public class Triangulate {
             }
             if (edgeJ != -1) {  //na zaciatku nebude mat 3uh. z pouzitych bodov
 
-///*experimentalne vypnut*/    if (point_cloud1.get(edgeJ).getMin()*4 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getMin()*4 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) //urcenie neakej maximalnej dlzky hrany
-/*experimentalne vypnut*/    if (point_cloud1.get(edgeJ).getAvg()/3 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getAvg()/3 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) //urcenie neakej maximalnej dlzky hrany
+/*experimentalne vypnut*/    if (point_cloud1.get(edgeJ).getMin()*5 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getMin()*5 > distance(edges1.get(i).r, point_cloud1.get(edgeJ))   ) //urcenie neakej maximalnej dlzky hrany
+///*experimentalne vypnut*/    if (point_cloud1.get(edgeJ).getAvg()/2 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getAvg()/2 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) //urcenie neakej maximalnej dlzky hrany
+///*experimentalne vypnut*/    if (20 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || 20 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) //urcenie neakej maximalnej dlzky hrany
                         {
                             //buď dve hrany a skončim, alebo jedna a skončim.
                             if (!edgeExist(edges1.get(i).l, point_cloud1.get(edgeJ)) && !edgeExist(edges1.get(i).r, point_cloud1.get(edgeJ))) {
@@ -404,6 +406,8 @@ public class Triangulate {
                             }
                         }
             }
+
+            
             
             
             
@@ -422,14 +426,15 @@ public class Triangulate {
                         //    potom zacat robit trojuholnik >>> code <<<
                         
                         //                        if (xxx != -2 && xxx == -1) {
-                        if ( xxx == -1) {
+//                        if ( xxx == -1) {
+                        if ( xxx != -2 && xxx != -3) {
                             edgeJ = j;
                             System.out.println("XXX"+edgeJ);
 //                            break;
 //                            dist = circlesA.get(circlesA.size()-1).getR();
                             dist = distanceFromEdge(edges1.get(i), point_cloud1.get(j));  
-                            if (point_cloud1.get(j).getMin()*4 > distance(edges1.get(i).l, point_cloud1.get(j)) 
-                                    || point_cloud1.get(j).getMin()*4 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
+                            if (point_cloud1.get(j).getMin()*12 > distance(edges1.get(i).l, point_cloud1.get(j)) 
+                                    || point_cloud1.get(j).getMin()*12 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
                             {
                                 if (dist.compareTo(dist_last) < 0) {
                                     dist_last = dist;
@@ -438,26 +443,15 @@ public class Triangulate {
                                 }
                             }
                         }
-//                        if (xxx < -2 ) {  //bod na kruznici sposobi vytvorenie bodu stredu kruznice a pridanie do mraacna bodov
-//                            xxx = -(xxx+3);
-//                            Circle cc = circlesA.get(xxx);
-////                            System.out.println(">>>>>>>>>>>"+cc.toString());
-//                            Point pp = new Point(cc.getX(), cc.getY(), cc.getZ()) ;
-//                            pp.setUsed();
-//                            point_cloud1.add( pp );
-//                            
-//                            makeEdge(edgeID++, edges1.get(i).l, pp );
-//                            makeEdge(edgeID++, edges1.get(i).r, pp );
-//                            face.add(new Face( edges1.get(i).l, pp, edges1.get(i).r));
-//                        }
                     }
                 }
             }
             
             if (edgeJ != -1) {
 
-///*experimentalne vypnut*/  if (point_cloud1.get(edgeJ).getMin()*4 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getMin()*4 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) 
-/*experimentalne vypnut*/  if (point_cloud1.get(edgeJ).getAvg()/3 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getAvg()/3 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) 
+/*experimentalne vypnut*/  if (point_cloud1.get(edgeJ).getMin()*5 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getMin()*5 > distance(edges1.get(i).r, point_cloud1.get(edgeJ))     ) 
+///*experimentalne vypnut*/  if (point_cloud1.get(edgeJ).getAvg()/2 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getAvg()/2 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) 
+///*experimentalne vypnut*/  if (20 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || 20 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) 
                 {
 //                         //make edges!!!
 //                           System.out.println(edgeID + "make edges!!!");
@@ -469,9 +463,6 @@ public class Triangulate {
 //                            break; // skoncim hladanie bodu for j
                 }
             }
-            
-            
-
         }
     }
 
@@ -547,19 +538,43 @@ public class Triangulate {
                 if (cc.getR() == 0.0) {
                     return -2; //ked su body kolinearne
                 }
-                if (cc.isInside(point_cloud1.get(i))) {
-//                if (cc.isInside1(point_cloud1.get(i)) == 1 ) {  // <<<<<<<<<<<<<
-                    return i;  //bod i je dnuka
+//                if (cc.isInside(point_cloud1.get(i))) {
+                if (cc.isInside1(point_cloud1.get(i)) == 1 ) {  // <<<<<<<<<<<<<
+//                    return i;  //bod i je dnuka
+                    return -3;  
                 }
-//                else if(cc.isInside1(point_cloud1.get(i)) == 0){
-//                    circlesA.add(cc); 
-//                    return -(circlesA.indexOf(cc) + 3);  //pozor!!! moze nastat chyba, potom da -1 a to vrati -2
-//                    //bod je na kruznici -> urob bod v mieste stredu kruznice
-//                }
+                else if(cc.isInside1(point_cloud1.get(i)) == 0){ 
+                    circlesA.add(cc); 
+                    return i; //bod je na kruznici
+                }
             }
         } 
         circlesA.add(cc); //adding value to ArrayList
 //      cc.setvalid();
+        return - 1; //ked nie je vo vnutri 3uholnika dalsi bod
+    }    
+
+    
+    /**
+     * delaunay circumcircle,
+     */
+    private int circleHasPoint1(Point a, Point b, Point c) {
+        Circle cc = circumcircle(a, b, c);
+               
+        for (int i = 0; i < point_cloud1.size(); i++) {
+//            if (i == a.getID() || i == b.getID() || i == c.getID() ) {} //do nothing
+            if (point_cloud1.get(i).getID() == a.getID() || point_cloud1.get(i).getID() == b.getID() || point_cloud1.get(i).getID() == c.getID() ) {}
+            else {
+                if (cc.getR() == 0.0) {
+                    return -2; //ked su body kolinearne
+                }
+                if (cc.isInside(point_cloud1.get(i))) {
+//                if (cc.isInside1(point_cloud1.get(i)) == 1 ) {  // <<<<<<<<<<<<<
+                    return i;  //bod i je dnuka
+                }
+            }
+        } 
+        circlesA.add(cc);
         return - 1; //ked nie je vo vnutri 3uholnika dalsi bod
     }    
     
