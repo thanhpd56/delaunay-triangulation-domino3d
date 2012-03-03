@@ -26,7 +26,7 @@ import sun.org.mozilla.javascript.internal.ast.Jump;
  */
 public class Triangulate {
     
-//----->>  interaface
+//----->>  interaface  //nemali by byt publit :-|
     public int amount = 20; //kolko bodov chcem/mam v poli
     public boolean startRandom ;//= true; //nahodny start bod, false= optimalny start bod
     public boolean collapse ;//= true; //nahodny start bod, false= optimalny start bod
@@ -52,7 +52,7 @@ public class Triangulate {
     public static void main(String[] args) {
         //System.out.println((int)(Math.random() * Math.random() * 100));
         System.out.println("////////////////////////////////////////////////////////////////////////////////////");
-        System.out.println("Triangulation algorithm of Boris Nikolaevich Delaunay, code by Dominik Januvka. 2011-2012");
+        System.out.println("Triangulation algorithm of Boris Nikolaevich Delaunay, code by Dominik Januvka. 2011/2012");
         System.out.println("Version 3 , NEWS: 3D");
         System.out.println("////////////////////////////////////////////////////////////////////////////////////");
         // volanie spustenia aplikacie
@@ -103,7 +103,7 @@ public class Triangulate {
         if (startRandom) {
             // zvolime si nahodne startovaci bod  ---alebo
             startPointID = getRandomStartPoint(amount);
-            new metrika(point_cloud1, amount); //musime zavolat metriku inak nevytvori hodnoty AVG a MIN pre body
+            getOptimalStartPoint(sort, point_cloud1, amount);
 //            System.out.println("first point: " + point_cloud[startPointID]);
             System.out.println("first RND point: " + point_cloud1.get(startPointID));
         } else {
@@ -195,7 +195,7 @@ public class Triangulate {
             
             // Open the file that is the first 
             // command line parameter
-            FileInputStream fstream = new FileInputStream("tea2.obj");
+            FileInputStream fstream = new FileInputStream("sphere1.obj");
             // Get the object of DataInputStream
             DataInputStream in = new DataInputStream(fstream);
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -323,7 +323,8 @@ public class Triangulate {
         
         makeEdge(1, point_cloud1.get(startPointID), point_cloud1.get(point3));
         makeEdge(2, point_cloud1.get(point2), point_cloud1.get(point3));
-        face.add(new Face(point_cloud1.get(startPointID), point_cloud1.get(point2), point_cloud1.get(point3)));
+//        face.add(new Face(point_cloud1.get(startPointID), point_cloud1.get(point2), point_cloud1.get(point3)));
+        face.add(new Face(startPointID, point2, point3));
         point_cloud1.get(point3).setUsed();
         ui.jProgressBar1.setValue(100*loading++/amount);
     }
@@ -385,24 +386,28 @@ public class Triangulate {
                             if (!edgeExist(edges1.get(i).l, point_cloud1.get(edgeJ)) && !edgeExist(edges1.get(i).r, point_cloud1.get(edgeJ))) {
                                 makeEdge(edgeID++, edges1.get(i).l, point_cloud1.get(edgeJ));
                                 makeEdge(edgeID++, edges1.get(i).r, point_cloud1.get(edgeJ));
-                                face.add(new Face( edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+//                                face.add(new Face( edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+                                face.add(new Face( point_cloud1.indexOf(edges1.get(i).l), edgeJ, point_cloud1.indexOf(edges1.get(i).r) ));
                                 point_cloud1.get(edgeJ).setUsed();
 //                                break; // skoncim hladanie bodu for j
                             } else {
                                 if (!edgeExist(edges1.get(i).l, point_cloud1.get(edgeJ))) {
                                     makeEdge(edgeID++, edges1.get(i).l, point_cloud1.get(edgeJ));
-                                    face.add(new Face( edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+//                                    face.add(new Face( edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+                                    face.add(new Face( point_cloud1.indexOf(edges1.get(i).l), edgeJ, point_cloud1.indexOf(edges1.get(i).r)));
                                     point_cloud1.get(edgeJ).setUsed();
 //                                    break; // skoncim for j
                                 } else {
                                     if (!edgeExist(edges1.get(i).r, point_cloud1.get(edgeJ))) {
                                         makeEdge(edgeID++, edges1.get(i).r, point_cloud1.get(edgeJ));
-                                        face.add(new Face( edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+//                                        face.add(new Face( edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+                                        face.add(new Face( point_cloud1.indexOf(edges1.get(i).l), edgeJ, point_cloud1.indexOf(edges1.get(i).r)));
                                         point_cloud1.get(edgeJ).setUsed();
 //                                        break; // skoncim for j
                                     }
                                 }
-                                face.add(new Face( edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+//                                face.add(new Face( edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+                                face.add(new Face( point_cloud1.indexOf(edges1.get(i).l), edgeJ, point_cloud1.indexOf(edges1.get(i).r)));
                             }
                         }
             }
@@ -431,8 +436,8 @@ public class Triangulate {
                             edgeJ = j;
                             System.out.println("XXX"+edgeJ);
 //                            break;
-//                            dist = circlesA.get(circlesA.size()-1).getR();
-                            dist = distanceFromEdge(edges1.get(i), point_cloud1.get(j));  
+                            dist = circlesA.get(circlesA.size()-1).getR();
+//                            dist = distanceFromEdge(edges1.get(i), point_cloud1.get(j));  
                             if (point_cloud1.get(j).getMin()*12 > distance(edges1.get(i).l, point_cloud1.get(j)) 
                                     || point_cloud1.get(j).getMin()*12 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
                             {
@@ -457,7 +462,8 @@ public class Triangulate {
 //                           System.out.println(edgeID + "make edges!!!");
                     makeEdge(edgeID++, edges1.get(i).l, point_cloud1.get(edgeJ));
                     makeEdge(edgeID++, edges1.get(i).r, point_cloud1.get(edgeJ));
-                    face.add(new Face(edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+//                    face.add(new Face(edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+                    face.add(new Face(point_cloud1.indexOf(edges1.get(i).l), edgeJ, point_cloud1.indexOf(edges1.get(i).r)));
                     point_cloud1.get(edgeJ).setUsed();
                     ui.jProgressBar1.setValue(100 * loading++ / amount);
 //                            break; // skoncim hladanie bodu for j
@@ -728,18 +734,18 @@ public class Triangulate {
  */
     private int getOptimalStartPoint(boolean parameter, ArrayList pc, int amount) {
         metrika m = new metrika(pc, amount);
-//daj mi optimalny bod = pozor! on iba vypocita MIN vzdialenost a AVG vzdialenost medzi bodmi a vrati 1.BOD
+//daj mi optimalny bod = pozor! on iba vypocita MIN vzdialenost a AVG vzdialenost medzi bodmi a vrati najvyhodnejsi bod, co je stale 1.BOD
+//musime zavolat metriku.getPoint inak nevytvori hodnoty AVG a MIN pre body
         int i = m.getPoint();
 //zorad pole podla ... toho co je v      public int compareTo(Object obj) {
-        if (parameter) {
+        if (parameter) { //parameter = sort ano/nie
 System.out.println("befor sort"+point_cloud1.toString());
             point_cloud1 = m.sort();
 System.out.println("after sort"+point_cloud1.toString());
-            return 0;  //najvyhodnejsi je navrchu, preto netreba nam uz pouzit ret i;
+            return 0;  //najvyhodnejsi je navrchu listu, preto netreba nam uz pouzit ret i;
         }
-//        for (int t = 0; t < point_cloud.length; t++) {
-//            System.out.println(">>"+point_cloud[t].getID()+">>"+point_cloud[t].getMin());
-//        }
+
+System.out.println("NO sort"+point_cloud1.toString());
         return i;
     }
 
@@ -886,6 +892,7 @@ System.out.println("after sort"+point_cloud1.toString());
             
             //Elements: f Face
             for (int i = 0; i < face.size(); i++) {
+//                point_cloud1.indexOf(face.get(i)).;
                 out.write("\n f " + face.get(i).toString() ); //todo: vrati ID pointov / neviem ci to je dobre?
             }
             

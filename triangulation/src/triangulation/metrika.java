@@ -45,13 +45,15 @@ public class metrika {
 //priradime do mracna kazdemu bodu jeho metriku ! :-)
             point_cloud1.get(i).setMin(dist_last);
             point_cloud1.get(i).setAvg(result);
-  System.out.println(i+"_"+dist_last+" "+result);
+  System.out.println(i+" min/avg "+dist_last+" / "+result);
             dist_last = Double.MAX_VALUE;
         }
 
 //teraz vyberiem najvhodnejsi prvok  >> podla parametra PRIEMERNEJ vzdialenosti // da sa zmenit
+//asi zbytocna fcia pri zapnutom SORT-e, lebo stale vrati prvy bod, pretoze body su uz v liste zotriedene
+//todo: vypinat toto pri zapnutom sorte, usetrime cas
         dist_last = Double.MAX_VALUE;
-        for (int i = 0; i < amount; i++) {
+        for (int i = 0; i < amount; i++) { 
             if (dist_last >= (point_cloud1.get(i).getAvg())) {
                 dist_last = (point_cloud1.get(i).getAvg());
                 optimal = i;
@@ -60,6 +62,7 @@ public class metrika {
         
         return optimal;
     }
+    
 /**
  * SORT
  * @return
