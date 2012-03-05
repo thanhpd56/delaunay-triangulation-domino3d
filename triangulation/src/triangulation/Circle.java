@@ -44,7 +44,7 @@ public class Circle {
         Double b = this.getR();
         if (0 > a.compareTo(b)){
             if (round(a,6).compareTo(round(b,6)) == 0 ) {
-                System.out.println("    trolololo    ..."); 
+//                System.out.println("    trolololo    ..."); 
                 return 0; //ked su body na jednej kruznici
             }
             return 1; //true

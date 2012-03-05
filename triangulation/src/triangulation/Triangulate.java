@@ -45,6 +45,8 @@ public class Triangulate {
     ArrayList<Edge> edges1 = new ArrayList<Edge>();
     ArrayList<Point> point_cloud1 = new ArrayList<Point>();  //array of points2d  // ID, X, Y, used(bool)
     ArrayList<Face> face = new ArrayList<Face>();  //array of faces
+    private int kon1 = 12; //konstanta 1 pri vybere vhodnosti 3uh.
+    private int kon2 = 5; //konstanta 2 pri maximalnej vzdialenosti
     
     /**
      * @param args the command line arguments
@@ -59,6 +61,7 @@ public class Triangulate {
         Triangulate triangulate = new Triangulate();
 
     }
+
     
     /**
      * samotne spustenie
@@ -72,6 +75,8 @@ public class Triangulate {
         startRandom = ui.isStartRandom();
         sort = ui.getSort();
         collapse = ui.isCollapse();
+        kon1 = ui.getKon1();
+        kon2 = ui.getKon2();
         
         
         point_cloud = new Point[amount];
@@ -79,7 +84,8 @@ public class Triangulate {
         circles = new Circle[amount];
 
         //neake nahodne mracno bodov v 2d
-        getRandomPoints(amount);
+//        getRandomPoints(amount);
+        amount=getRandomPoints(amount);
 
         
         //blizke body spojim podla parametru    (Double) ui.getTolerance().getText()
@@ -132,7 +138,7 @@ public class Triangulate {
         triangulate();  //ostatne 3uholniky
         
         //dokreslime konvexne trojuholniky po krajoch v 2D (mozme, NEMUSIME)
-        konvex();
+//        konvex();
         
         
         //otvorime si okienko a nakreslim co to vlastne vyrobilo
@@ -142,12 +148,16 @@ public class Triangulate {
         
         //export do wavefront OBJ
         export();
+        
+        //vypocet uplnosti povrchu modelu
+        System.out.println("Úplnosť povrchu modelu: "+ui.jProgressBar1.getValue()+" %");
     }
 
     /**
      * Generates a set of random points to triangulate, nums from 0.0 to 100.0.
      */
-    private void getRandomPoints(int amount) {
+//    private void getRandomPoints(int amount) {
+    private int getRandomPoints(int amount) {
 //        point_cloud[0] = new Point(0,1,1);
 //        point_cloud[1] = new Point(1,2,3);
 //        point_cloud[2] = new Point(2,3,2);
@@ -195,7 +205,7 @@ public class Triangulate {
             
             // Open the file that is the first 
             // command line parameter
-            FileInputStream fstream = new FileInputStream("sphere1.obj");
+            FileInputStream fstream = new FileInputStream("tea2.obj");
             // Get the object of DataInputStream
             DataInputStream in = new DataInputStream(fstream);
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -230,6 +240,7 @@ public class Triangulate {
             }
 
         }
+        return pc ;
 
     }
 
@@ -361,15 +372,17 @@ public class Triangulate {
                         if ( xxx != -2 && xxx != -3) {
 
 //                            break;
-                            dist = circlesA.get(circlesA.size()-1).getR();  //posledny pridany kruh neobsahujuci bod
+                            dist = Math.acos(skalarSucin(edges1.get(edgeID-1).getMidpoint(), edges1.get(i).getMidpoint(), point_cloud1.get(j)));
+//                            dist = circlesA.get(circlesA.size()-1).getR();  //posledny pridany kruh neobsahujuci bod
 //                            dist = distanceFromEdge(edges1.get(i), point_cloud1.get(j));  
-                            if (point_cloud1.get(j).getMin()*12 > distance(edges1.get(i).l, point_cloud1.get(j)) 
-                                    || point_cloud1.get(j).getMin()*12 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
+                            if (point_cloud1.get(j).getMin()*kon1 > distance(edges1.get(i).l, point_cloud1.get(j)) 
+                                    || point_cloud1.get(j).getMin()*kon1 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
                             {
-                                if (dist.compareTo(dist_last) < 0) {
+//                                if (dist.compareTo(dist_last) < 0) {
+                                if (dist.compareTo(dist_last) > 0) {
                                     dist_last = dist;
                                     edgeJ = j;
-                                    System.out.println("..." + edgeJ);
+//                                    System.out.println("..." + edgeJ);
                                 }
                             }
                         }
@@ -378,7 +391,7 @@ public class Triangulate {
             }
             if (edgeJ != -1) {  //na zaciatku nebude mat 3uh. z pouzitych bodov
 
-/*experimentalne vypnut*/    if (point_cloud1.get(edgeJ).getMin()*5 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getMin()*5 > distance(edges1.get(i).r, point_cloud1.get(edgeJ))   ) //urcenie neakej maximalnej dlzky hrany
+/*experimentalne vypnut*/    if (point_cloud1.get(edgeJ).getMin()*kon2 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getMin()*kon2 > distance(edges1.get(i).r, point_cloud1.get(edgeJ))   ) //urcenie neakej maximalnej dlzky hrany
 ///*experimentalne vypnut*/    if (point_cloud1.get(edgeJ).getAvg()/2 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getAvg()/2 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) //urcenie neakej maximalnej dlzky hrany
 ///*experimentalne vypnut*/    if (20 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || 20 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) //urcenie neakej maximalnej dlzky hrany
                         {
@@ -434,17 +447,19 @@ public class Triangulate {
 //                        if ( xxx == -1) {
                         if ( xxx != -2 && xxx != -3) {
                             edgeJ = j;
-                            System.out.println("XXX"+edgeJ);
+//                            System.out.println("XXX"+edgeJ);
 //                            break;
-                            dist = circlesA.get(circlesA.size()-1).getR();
+                            dist = Math.acos(skalarSucin(edges1.get(edgeID-1).getMidpoint(), edges1.get(i).getMidpoint(), point_cloud1.get(j)));
+//                            dist = circlesA.get(circlesA.size()-1).getR();
 //                            dist = distanceFromEdge(edges1.get(i), point_cloud1.get(j));  
-                            if (point_cloud1.get(j).getMin()*12 > distance(edges1.get(i).l, point_cloud1.get(j)) 
-                                    || point_cloud1.get(j).getMin()*12 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
+                            if (point_cloud1.get(j).getMin()*kon1 > distance(edges1.get(i).l, point_cloud1.get(j)) 
+                                    || point_cloud1.get(j).getMin()*kon1 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
                             {
-                                if (dist.compareTo(dist_last) < 0) {
+//                                if (dist.compareTo(dist_last) < 0) {
+                                if (dist.compareTo(dist_last) > 0) {
                                     dist_last = dist;
                                     edgeJ = j;
-                                    System.out.println("XXX" + edgeJ);
+//                                    System.out.println("XXX" + edgeJ);
                                 }
                             }
                         }
@@ -454,7 +469,7 @@ public class Triangulate {
             
             if (edgeJ != -1) {
 
-/*experimentalne vypnut*/  if (point_cloud1.get(edgeJ).getMin()*5 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getMin()*5 > distance(edges1.get(i).r, point_cloud1.get(edgeJ))     ) 
+/*experimentalne vypnut*/  if (point_cloud1.get(edgeJ).getMin()*kon2 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getMin()*kon2 > distance(edges1.get(i).r, point_cloud1.get(edgeJ))     ) 
 ///*experimentalne vypnut*/  if (point_cloud1.get(edgeJ).getAvg()/2 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getAvg()/2 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) 
 ///*experimentalne vypnut*/  if (20 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || 20 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) 
                 {
@@ -463,9 +478,9 @@ public class Triangulate {
                     makeEdge(edgeID++, edges1.get(i).l, point_cloud1.get(edgeJ));
                     makeEdge(edgeID++, edges1.get(i).r, point_cloud1.get(edgeJ));
 //                    face.add(new Face(edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+                    ui.jProgressBar1.setValue(100 * loading++ / amount);
                     face.add(new Face(point_cloud1.indexOf(edges1.get(i).l), edgeJ, point_cloud1.indexOf(edges1.get(i).r)));
                     point_cloud1.get(edgeJ).setUsed();
-                    ui.jProgressBar1.setValue(100 * loading++ / amount);
 //                            break; // skoncim hladanie bodu for j
                 }
             }
@@ -680,6 +695,13 @@ public class Triangulate {
         return new Circle(polomer,circleX,circleY,circleZ);
     }
 
+    /**
+     * vektorovy sucin pre 2D
+     * @param p1
+     * @param p2
+     * @param p3
+     * @return 
+     */
     static double crossProduct(Point p1, Point p2, Point p3) {
         double u1, v1, u2, v2;
 
@@ -690,6 +712,14 @@ public class Triangulate {
 
         return u1 * v2 - u2 * v1;
     }
+    
+    /**
+     * vektorovy sucin pre 3D
+     * @param p1
+     * @param p2
+     * @param p3
+     * @return 
+     */
     static double crossProduct1(Point p1, Point p2, Point p3) {
         double a1, a2, a3, b1, b2, b3;
         
@@ -719,6 +749,29 @@ public class Triangulate {
         z =  a.getX()*b.getY() - a.getY()*b.getX();
 
         return new Point(x, y, z);
+    }
+    
+    /**
+     * http://www.java-gaming.org/topics/how-can-i-find-the-angle-between-two-lines/3332/msg/30950/view.html#msg30950
+     * dot is the cos of angle and the angle is:
+        angle = Math.acos(dot)
+     * @param p1
+     * @param p2
+     * @param p3
+     * @return 
+     */
+    static double skalarSucin(Point p1, Point p2, Point p3){
+        double ax  = p2.getX() - p1.getX();
+        double ay  = p2.getY() - p1.getY();
+        double az  = p2.getZ() - p1.getZ();
+        double bx  = p3.getX() - p1.getX();
+        double by  = p3.getY() - p1.getY();
+        double bz  = p3.getZ() - p1.getZ();
+        double dota= Math.sqrt(ax*ax+ay*ay+az*az);
+        double dotb= Math.sqrt(bx*bx+by*by+bz*bz);
+        double ret = 3*dota*dotb;
+        
+        return  ret;
     }
 
     private void konvex() {
