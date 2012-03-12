@@ -786,7 +786,8 @@ public class Triangulate {
  * @return
  */
     private int getOptimalStartPoint(boolean parameter, ArrayList pc, int amount) {
-        metrika m = new metrika(pc, amount);
+//        metrika m = new metrika(pc, amount);
+        CLmetrika m = new CLmetrika(pc, amount);
 //daj mi optimalny bod = pozor! on iba vypocita MIN vzdialenost a AVG vzdialenost medzi bodmi a vrati najvyhodnejsi bod, co je stale 1.BOD
 //musime zavolat metriku.getPoint inak nevytvori hodnoty AVG a MIN pre body
         int i = m.getPoint();

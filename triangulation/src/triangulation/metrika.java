@@ -20,9 +20,13 @@ public class metrika {
     public metrika(ArrayList point_cloud, int amount) {
         this.point_cloud1=point_cloud;
         this.amount=amount;
-        cloud = new double[amount];
+        cloud = new double[amount]; //tu su ulozene vsetky vzdialenosti od toho ktoreho bodu
     }
 
+    /**
+     * vypocet metriky pre kazdy bod
+     * @return 0 zero
+     */
     int getPoint() {
         Double tmp = new Double(0);
         Double dist_last = Double.MAX_VALUE;
@@ -40,25 +44,27 @@ public class metrika {
             for (int k = 0; k < cloud.length; k++) {
                 result = result + cloud[k];
 //            }result = round(result / cloud.length,4);
-            }result = result / cloud.length;
+            }
+            result = result / cloud.length;
 
 //priradime do mracna kazdemu bodu jeho metriku ! :-)
             point_cloud1.get(i).setMin(dist_last);
             point_cloud1.get(i).setAvg(result);
-  System.out.println(i+" min/avg "+dist_last+" / "+result);
+            System.out.println(i + " min/avg " + dist_last + " / " + result);
+            System.out.println(i + " min/avg " + point_cloud1.get(i).getMin() + " / " + point_cloud1.get(i).getAvg());
             dist_last = Double.MAX_VALUE;
         }
 
 //teraz vyberiem najvhodnejsi prvok  >> podla parametra PRIEMERNEJ vzdialenosti // da sa zmenit
 //asi zbytocna fcia pri zapnutom SORT-e, lebo stale vrati prvy bod, pretoze body su uz v liste zotriedene
 //todo: vypinat toto pri zapnutom sorte, usetrime cas
-        dist_last = Double.MAX_VALUE;
-        for (int i = 0; i < amount; i++) { 
-            if (dist_last >= (point_cloud1.get(i).getAvg())) {
-                dist_last = (point_cloud1.get(i).getAvg());
-                optimal = i;
-            }
-        }
+//        dist_last = Double.MAX_VALUE;
+//        for (int i = 0; i < amount; i++) { 
+//            if (dist_last >= (point_cloud1.get(i).getAvg())) {
+//                dist_last = (point_cloud1.get(i).getAvg());
+//                optimal = i;
+//            }
+//        }
         
         return optimal;
     }
