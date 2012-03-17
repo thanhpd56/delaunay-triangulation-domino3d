@@ -47,6 +47,8 @@ public class Triangulate {
     ArrayList<Face> face = new ArrayList<Face>();  //array of faces
     private int kon1 = 12; //konstanta 1 pri vybere vhodnosti 3uh.
     private int kon2 = 5; //konstanta 2 pri maximalnej vzdialenosti
+    private boolean fromFile;
+    private String file;
     
     /**
      * @param args the command line arguments
@@ -70,6 +72,7 @@ public class Triangulate {
         //spustime user interface pre nastavenie 
         ui = new UIfc(null, true);
         ui.setVisible(true);
+        if(ui.isExit())System.exit(1); //exit on exit
         
         amount = ui.getAmount();
         startRandom = ui.isStartRandom();
@@ -77,6 +80,12 @@ public class Triangulate {
         collapse = ui.isCollapse();
         kon1 = ui.getKon1();
         kon2 = ui.getKon2();
+        fromFile = ui.isFromFile();
+        file = ui.getFile();
+        if (fromFile && file == null) {
+            System.out.println("Nebol vybraty ziaden subor! Koncim");
+            System.exit(0); //exit on exit
+        }
         
         
         point_cloud = new Point[amount];
@@ -85,11 +94,12 @@ public class Triangulate {
 
         //neake nahodne mracno bodov v 2d
 //        getRandomPoints(amount);
-        amount=getRandomPoints(amount);
+        amount=getRandomPoints(amount, fromFile);
 
         
         //blizke body spojim podla parametru    (Double) ui.getTolerance().getText()
         if (collapse) {
+//            point_cloud1 = CLcollapse(Double.parseDouble(ui.getTolerance().getText()));
             point_cloud1 = collapse(Double.parseDouble(ui.getTolerance().getText()));
 //            System.out.println("colapse tolerance " + Double.parseDouble(ui.getTolerance().getText()));
             System.out.println("colapse >> amount " + point_cloud1.size() );
@@ -157,91 +167,44 @@ public class Triangulate {
      * Generates a set of random points to triangulate, nums from 0.0 to 100.0.
      */
 //    private void getRandomPoints(int amount) {
-    private int getRandomPoints(int amount) {
-//        point_cloud[0] = new Point(0,1,1);
-//        point_cloud[1] = new Point(1,2,3);
-//        point_cloud[2] = new Point(2,3,2);
-//        point_cloud[3] = new Point(3,10,11);
-//        point_cloud[4] = new Point(4,11,10);
-//        point_cloud[5] = new Point(5,12,10);
-//        point_cloud[6] = new Point(6,17,12);
-//        point_cloud[7] = new Point(7,19,15);
-//        point_cloud[8] = new Point(8,18,16);
-//        point_cloud[9] = new Point(9,14,13);
-
-//        point_cloud[0] = new Point(0,10,10);
-//        point_cloud[1] = new Point(1,10,20);
-////        point_cloud[2] = new Point(2,10,30);
-//        point_cloud[3] = new Point(3,20,10);
-//        point_cloud[4] = new Point(4,20,20);
-//        point_cloud[5] = new Point(5,20,30);
-//        point_cloud[6] = new Point(6,30,10);
-//        point_cloud[7] = new Point(7,30,20);
-//        point_cloud[8] = new Point(8,30,30);
-//        point_cloud[9] = new Point(9,40,10);
-        
-//        point_cloud1.add( new Point(0,10,10,1));
-//        point_cloud1.add( new Point(1,10,20,2));
-//        point_cloud1.add( new Point(2,10,30,1));
-//        point_cloud1.add( new Point(3,20,10,3));
-//        point_cloud1.add( new Point(4,20,20,4));
-//        point_cloud1.add( new Point(5,20,30,1));
-//        point_cloud1.add( new Point(6,30,10,2));
-//        point_cloud1.add( new Point(7,30,20,2));
-//        point_cloud1.add( new Point(8,30,30,1));
-//        point_cloud1.add( new Point(9,40,10,4));
-
-////        for (int i = 0; i < point_cloud.length; i++) {
-//        for (int i = 0; i < amount; i++) {
-////            point_cloud1.add(new Point(i, /*(int)*/ round((Math.random() * Math.random() * 100),4), /*(int)*/ round((Math.random() * Math.random() * 100),10)));
-//            point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100),  (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100)));
-//        }
-        
-        
-//        /-----------
-        ArrayList<String[]> riadok = new ArrayList<String[]>();
-        String[] tokens;
-        try {
-            
-            // Open the file that is the first 
-            // command line parameter
-            FileInputStream fstream = new FileInputStream("tea2.obj");
-            // Get the object of DataInputStream
-            DataInputStream in = new DataInputStream(fstream);
-            BufferedReader br = new BufferedReader(new InputStreamReader(in));
-            String strLine;
-            //Read File Line By Line
-            while ((strLine = br.readLine()) != null) {
-                // Print the content on the console
-//                System.out.println(strLine);
-                String delims = "[ ]+";
-                tokens = strLine.split(delims);
-                
-//                riadok.add(new String[2]);
-                riadok.add(tokens);
-                
-//                for (int i = 0; i < amount; i++) { //  >>> 561 <<<
-//                    point_cloud1.add(new Point(i, strLine.sp, , ));
-//                }
-                
+    private int getRandomPoints(int amount, boolean fromFile) {
+        if (!fromFile) {
+            for (int i = 0; i < amount; i++) {
+                point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100)));
             }
-            //Close the input stream
-            in.close();
-        } catch (Exception e) {//Catch exception if any
-            System.err.println("Error: " + e.getMessage());
-        }
-        
-        int pc = 0;
-        for (int i = 0; i < riadok.size(); i++)
-        {
-            tokens = riadok.get(i);
-            if ("v".equals(tokens[0])) {
-                point_cloud1.add(new Point(pc++, Double.parseDouble(tokens[1]), Double.parseDouble(tokens[2]), Double.parseDouble(tokens[3])));
+            return amount;
+        } else {
+            ArrayList<String[]> riadok = new ArrayList<String[]>();
+            String[] tokens;
+            try {
+                // Open the file that is the first 
+                // command line parameter
+                FileInputStream fstream = new FileInputStream(""+file);
+                // Get the object of DataInputStream
+                DataInputStream in = new DataInputStream(fstream);
+                BufferedReader br = new BufferedReader(new InputStreamReader(in));
+                String strLine;
+                //Read File Line By Line
+                while ((strLine = br.readLine()) != null) {
+                    String delims = "[ ]+";
+                    tokens = strLine.split(delims);
+                    riadok.add(tokens);
+                }
+                //Close the input stream
+                in.close();
+            } catch (Exception e) {//Catch exception if any
+                System.err.println("Error: " + e.getMessage());
             }
 
+            int pc = 0;
+            for (int i = 0; i < riadok.size(); i++) {
+                tokens = riadok.get(i);
+                if ("v".equals(tokens[0])) {
+                    point_cloud1.add(new Point(pc++, Double.parseDouble(tokens[1]), Double.parseDouble(tokens[2]), Double.parseDouble(tokens[3])));
+                }
+            }
+            return pc;
         }
-        return pc ;
-
     }
 
     /**
@@ -486,7 +449,154 @@ public class Triangulate {
             }
         }
     }
+//------------------------------------------------------------------------------
+    
+    /**
+     * samotna triangulacia GPGPU
+     */
+    private void CLtriangulate() {
+        int edgeID = 3;
+        int edgeJ = -1;
+        int edgeK = -1;
+        int xxx;
+        Double dist = new Double(0);
+        Double dist_last = Double.MAX_VALUE;
+        
+        point_cloud1 = new CLtriangulation( edges1, face, point_cloud1, amount).getReturnArray();
+        if (point_cloud1 == null) {
+            System.out.println("CL ERROR, CLtriangulation, point clound returns NULL");
+        }
+        
+        
+        
+        for (int i = 0; i < edges1.size(); i++) {
+         edgeJ = -1;
+         dist_last = Double.MAX_VALUE;
 
+            //4/for used points only
+            for (int j = 0; j < point_cloud1.size(); j++) {
+                if (point_cloud1.get(j).isUsed()) {
+                    if (edges1.get(i).l == point_cloud1.get(j) || edges1.get(i).r == point_cloud1.get(j)) { //todo: nie som si isty ci takto to mozem porovnavat
+                    } else {
+                        xxx = circleHasPoint(edges1.get(i).l, edges1.get(i).r, point_cloud1.get(j));
+                        
+                        //    kontrola ci mam najvyhodnejsi, najmensi, 3uholnik a az tak striangulovat ALEBO ci je bod na vyhovujucej(blizkej) rovine
+                        //    potom zacat robit trojuholnik >>> code <<<
+//                        if ( xxx == -1) {
+                        if ( xxx != -2 && xxx != -3) {
+
+//                            break;
+                            dist = Math.acos(skalarSucin(edges1.get(edgeID-1).getMidpoint(), edges1.get(i).getMidpoint(), point_cloud1.get(j)));
+//                            dist = circlesA.get(circlesA.size()-1).getR();  //posledny pridany kruh neobsahujuci bod
+//                            dist = distanceFromEdge(edges1.get(i), point_cloud1.get(j));  
+                            if (point_cloud1.get(j).getMin()*kon1 > distance(edges1.get(i).l, point_cloud1.get(j)) 
+                                    || point_cloud1.get(j).getMin()*kon1 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
+                            {
+//                                if (dist.compareTo(dist_last) < 0) {
+                                if (dist.compareTo(dist_last) > 0) {
+                                    dist_last = dist;
+                                    edgeJ = j;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (edgeJ != -1) {  //na zaciatku nebude mat 3uh. z pouzitych bodov
+
+/*experimentalne vypnut*/    if (point_cloud1.get(edgeJ).getMin()*kon2 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getMin()*kon2 > distance(edges1.get(i).r, point_cloud1.get(edgeJ))   ) //urcenie neakej maximalnej dlzky hrany
+///*experimentalne vypnut*/    if (point_cloud1.get(edgeJ).getAvg()/2 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getAvg()/2 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) //urcenie neakej maximalnej dlzky hrany
+///*experimentalne vypnut*/    if (20 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || 20 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) //urcenie neakej maximalnej dlzky hrany
+                        {
+                            //buď dve hrany a skončim, alebo jedna a skončim.
+                            if (!edgeExist(edges1.get(i).l, point_cloud1.get(edgeJ)) && !edgeExist(edges1.get(i).r, point_cloud1.get(edgeJ))) {
+                                makeEdge(edgeID++, edges1.get(i).l, point_cloud1.get(edgeJ));
+                                makeEdge(edgeID++, edges1.get(i).r, point_cloud1.get(edgeJ));
+//                                face.add(new Face( edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+                                face.add(new Face( point_cloud1.indexOf(edges1.get(i).l), edgeJ, point_cloud1.indexOf(edges1.get(i).r) ));
+                                point_cloud1.get(edgeJ).setUsed();
+//                                break; // skoncim hladanie bodu for j
+                            } else {
+                                if (!edgeExist(edges1.get(i).l, point_cloud1.get(edgeJ))) {
+                                    makeEdge(edgeID++, edges1.get(i).l, point_cloud1.get(edgeJ));
+//                                    face.add(new Face( edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+                                    face.add(new Face( point_cloud1.indexOf(edges1.get(i).l), edgeJ, point_cloud1.indexOf(edges1.get(i).r)));
+                                    point_cloud1.get(edgeJ).setUsed();
+//                                    break; // skoncim for j
+                                } else {
+                                    if (!edgeExist(edges1.get(i).r, point_cloud1.get(edgeJ))) {
+                                        makeEdge(edgeID++, edges1.get(i).r, point_cloud1.get(edgeJ));
+//                                        face.add(new Face( edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+                                        face.add(new Face( point_cloud1.indexOf(edges1.get(i).l), edgeJ, point_cloud1.indexOf(edges1.get(i).r)));
+                                        point_cloud1.get(edgeJ).setUsed();
+//                                        break; // skoncim for j
+                                    }
+                                }
+//                                face.add(new Face( edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+                                face.add(new Face( point_cloud1.indexOf(edges1.get(i).l), edgeJ, point_cloud1.indexOf(edges1.get(i).r)));
+                            }
+                        }
+            }
+
+            
+            
+            
+            
+//----------------------------------
+            edgeJ = -1;
+            dist_last = Double.MAX_VALUE;
+            
+            //4 not used points only
+            for (int j = 0; j < point_cloud1.size(); j++) {
+                if (!point_cloud1.get(j).isUsed()) {
+                    if (edges1.get(i).l == point_cloud1.get(j) || edges1.get(i).r == point_cloud1.get(j)) {
+                    } else {
+                        xxx = circleHasPoint(edges1.get(i).l, edges1.get(i).r, point_cloud1.get(j)); //tu by sa dalo opytat stale ci je v kruznici neaeky nepouzity bod a s nim pokracovat
+                        
+                        //    kontrola ci mam najvyhodnejsi, najmensi, 3uholnik a az tak striangulovat ALEBO ci je bod na vyhovujucej(blizkej) rovine
+                        //    potom zacat robit trojuholnik >>> code <<<
+                        
+                        //                        if (xxx != -2 && xxx == -1) {
+//                        if ( xxx == -1) {
+                        if ( xxx != -2 && xxx != -3) {
+                            edgeJ = j;
+//                            break;
+                            dist = Math.acos(skalarSucin(edges1.get(edgeID-1).getMidpoint(), edges1.get(i).getMidpoint(), point_cloud1.get(j)));
+//                            dist = circlesA.get(circlesA.size()-1).getR();
+//                            dist = distanceFromEdge(edges1.get(i), point_cloud1.get(j));  
+                            if (point_cloud1.get(j).getMin()*kon1 > distance(edges1.get(i).l, point_cloud1.get(j)) 
+                                    || point_cloud1.get(j).getMin()*kon1 > distance(edges1.get(i).r, point_cloud1.get(j)) ) 
+                            {
+//                                if (dist.compareTo(dist_last) < 0) {
+                                if (dist.compareTo(dist_last) > 0) {
+                                    dist_last = dist;
+                                    edgeJ = j;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (edgeJ != -1) {
+
+/*experimentalne vypnut*/  if (point_cloud1.get(edgeJ).getMin()*kon2 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getMin()*kon2 > distance(edges1.get(i).r, point_cloud1.get(edgeJ))     ) 
+///*experimentalne vypnut*/  if (point_cloud1.get(edgeJ).getAvg()/2 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || point_cloud1.get(edgeJ).getAvg()/2 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) 
+///*experimentalne vypnut*/  if (20 > distance(edges1.get(i).l, point_cloud1.get(edgeJ)) || 20 > distance(edges1.get(i).r, point_cloud1.get(edgeJ)) ) 
+                {
+//                         //make edges!!!
+//                           System.out.println(edgeID + "make edges!!!");
+                    makeEdge(edgeID++, edges1.get(i).l, point_cloud1.get(edgeJ));
+                    makeEdge(edgeID++, edges1.get(i).r, point_cloud1.get(edgeJ));
+//                    face.add(new Face(edges1.get(i).l, point_cloud1.get(edgeJ), edges1.get(i).r));
+                    ui.jProgressBar1.setValue(100 * loading++ / amount);
+                    face.add(new Face(point_cloud1.indexOf(edges1.get(i).l), edgeJ, point_cloud1.indexOf(edges1.get(i).r)));
+                    point_cloud1.get(edgeJ).setUsed();
+//                            break; // skoncim hladanie bodu for j
+                }
+            }
+        }
+    }
     
 
     /**
@@ -774,11 +884,6 @@ public class Triangulate {
         return  ret;
     }
 
-    private void konvex() {
-        
-        System.out.println("//TODO: implement THIS!");
-    }
-
     /**
  * vyriesi problem optimalneho startu
  * @param amount
@@ -823,31 +928,34 @@ System.out.println("NO sort"+point_cloud1.toString());
      * @return 
      */
     private boolean edgeExist(Point x, Point y) {
-//        throw new UnsupportedOperationException("Not yet implemented");
-//        edges1.contains(new Edge(x, y));
-        
         for (int i = 0; i < edges1.size(); i++) {
-//            if (((edges1.get(i).l).equals(x) && (edges1.get(i).r).equals(y)) || 
-//                    ((edges1.get(i).l).equals(y) && (edges1.get(i).r).equals(x))) 
-//            {
-////                System.out.println("<<< Lallalala >>>");
-//                return true;
-//            }
             if ( 
                     ((edges1.get(i).l.getX() == x.getX()) &&  (edges1.get(i).l.getY() == x.getY()) &&
                     (edges1.get(i).r.getX() == y.getX()) &&  (edges1.get(i).r.getY() == y.getY())) ||
                     ((edges1.get(i).r.getX() == x.getX()) &&  (edges1.get(i).r.getY() == x.getY()) &&
                     (edges1.get(i).l.getX() == y.getX()) &&  (edges1.get(i).l.getY() == y.getY()))
                     ) {
-//                System.out.println("<<< Lallalala >>>");
                 return true;
             }
-            
-            
         }
         return false;
     }
 
+    /**
+     * spojenie velmi blizkych bodov v ramci zadanej tolerancie OPENCL
+     * @param tol 
+     */
+    private ArrayList CLcollapse(double tol) {
+//        throw new UnsupportedOperationException("do not use");
+//        
+        System.out.println("CL collapse: tolerance "+tol);
+        ArrayList<Point> points = new CLcollapse((float)tol, point_cloud1, amount).getReturnArray();
+        if (points == null) {
+            System.out.println("CL ERROR, point clound returns NULL");
+        }
+        return  points;
+    }
+    
     /**
      * spojenie velmi blizkych bodov v ramci zadanej tolerancie
      * @param tol 
@@ -856,64 +964,36 @@ System.out.println("NO sort"+point_cloud1.toString());
         Double dis;
         ArrayList<Point> ppc = new ArrayList<Point>(); 
         Point[] ppp = new Point[point_cloud1.size()];
-//        Double tol = 0.001;
 
-        System.out.println("a>>>>" + point_cloud1.size() + "<<<" + point_cloud1.toString());
-//            for (int i = 0; i < point_cloud1.size(); i++) {
-//                for (int j = 0; j < point_cloud1.size(); j++) {
-//                    if (i != j) {
-//                        dis = distance(point_cloud1.get(i), point_cloud1.get(j));
-//                        if ( 0 <= dis.compareTo(tol) ) {
-//                            point_cloud1.get(i).setX((point_cloud1.get(i).getX()+point_cloud1.get(j).getX())/2);
-//                            point_cloud1.get(i).setY((point_cloud1.get(i).getY()+point_cloud1.get(j).getY())/2);
-//                            point_cloud1.remove(j);
-////                            point_cloud1.add(new Point( ,(point_cloud[i].getX()+point_cloud[j].getX())/2,(point_cloud[i].getY()+point_cloud[j].getY())/2));
-//                        }
-//                    }
-//                }
-//            }
-        
+System.out.println("a>>>>" + point_cloud1.size() + "<<<" + point_cloud1.toString());
         
         for (int i = 0; i < point_cloud1.size(); i++) {
             ppp[i] = point_cloud1.get(i);
         }
         
-//            int k = 0;
         for (int i = 0; i < ppp.length; i++) {
             for (int j = 0; j < ppp.length; j++) {
                 ui.jProgressBar2.setValue(100*i/ppp.length);
                 if (i != j && ppp[i] != null && ppp[j] != null) {
                     dis = distance(ppp[i], ppp[j]);
-//                    System.out.println("distance " + dis + ", tolerance " + tol);
-//                    System.out.println(dis.compareTo(tol));
                     if (0 >= dis.compareTo(tol)) {
-//                        System.out.println("spajam!");
-//                            point_cloud1.add(new Point( k++, ((point_cloud[i].getX()+point_cloud[j].getX())/2), ((point_cloud[i].getY()+point_cloud[j].getY())/2)));
-//                            point_cloud[i].setX((point_cloud[i].getX()+point_cloud[j].getX())/2);
-//                            point_cloud[i].setY((point_cloud[i].getY()+point_cloud[j].getY())/2);
                         ppp[i] = new Point(i, round((ppp[i].getX() + ppp[j].getX()) / 2,10), round((ppp[i].getY() + ppp[j].getY()) / 2,4), round((ppp[i].getZ() + ppp[j].getZ()) / 2,10)); 
-                                           //toto vrati aj viac bodov s rovnakym pointID
+                        //toto vrati aj viac bodov s rovnakym pointID
                         ppp[j] = null;
-                    } else {
-//                            point_cloud1.add(point_cloud[i]);
-//                            point_cloud1.add(point_cloud[j]);
                     }
                 }
             }
         }
         
         
-        
-//        System.out.println("2"+point_cloud1.toString());
         int j = 0; //prepisanie ciselID bodov, kedze mohli vzniknut viacere s rovn. cislomID
         for (int i = 0; i < ppp.length; i++) {
             if (ppp[i] != null) {
                 ppp[i].setID(j++);
                 ppc.add(ppp[i]);
-//                System.out.println(ppp[i].toString());
             }
         }
-        System.out.println("b>>>>" + ppc.size() + "X"+j + "<<<" + ppc.toString());
+System.out.println("b>>>>" + ppc.size() + "X"+j + "<<<" + ppc.toString());
         
         return ppc;
     }
@@ -966,39 +1046,3 @@ System.out.println("NO sort"+point_cloud1.toString());
     }
 
 }
-
-
-
-
-
-
-/* //circumcircle
- * {
-                double p1Sq, p2Sq, p3Sq, p4Sq, p5Sq, p6Sq;
-                double num;
-
-                p1Sq = p1.getX() * p1.getX() + p1.getY() * p1.getY();
-                p2Sq = p2.getX() * p2.getX() + p2.getY() * p2.getY();
-                p3Sq = p3.getX() * p3.getX() + p3.getY() * p3.getY();
-                p4Sq = p1.getX() * p1.getX() + p1.getZ() * p1.getZ(); //
-                p5Sq = p2.getX() * p2.getX() + p2.getZ() * p2.getZ(); //
-                p6Sq = p3.getX() * p3.getX() + p3.getZ() * p3.getZ(); //
-                //The Cartesian coordinates of the circumcenter are
-                //http://en.wikipedia.org/wiki/Circumscribed_circle
-                //http://upload.wikimedia.org/wikipedia/en/math/9/2/e/92e0593d517f4cdb4143e8c53f6db531.png
-                //http://everything2.com/title/Circumcenter
-
-      
-                num = p1Sq*(p2.getY() - p3.getY()) + p2Sq*(p3.getY() - p1.getY()) + p3Sq*(p1.getY() - p2.getY());
-                circleX = num / (2.0f * stred);
-                num = p1Sq*(p3.getX() - p2.getX()) + p2Sq*(p1.getX() - p3.getX()) + p3Sq*(p2.getX() - p1.getX());
-                circleY = num / (2.0f * stred);
-//urcit stredovu Z suradnicu GULE !!!
-                num = p4Sq*(p3.getX() - p2.getX()) + p5Sq*(p1.getX() - p3.getX()) + p6Sq*(p2.getX() - p1.getX());
-                circleZ = num / (2.0f * stred);
-
-                stred = distance(new Point( circleX, circleY, circleZ), p1); //Polomer
-            }
- 
- 
- */

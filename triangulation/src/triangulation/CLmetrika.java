@@ -37,13 +37,17 @@ public class CLmetrika
     int getPoint(){
         // Create input- and output data 
         int n = amount;
+        int m = amount/10000; //not used
+        
 //        Double dist_last = Double.MAX_VALUE;
         Float dist_last = Float.MAX_VALUE;
         float srcArrayX[] = new float[n]; //x
         float srcArrayY[] = new float[n]; //y
         float srcArrayZ[] = new float[n]; //z
-        float minArray[]  = new float[n];  //vysledok min
-        float avgArray[]  = new float[n];  //vysledok avg
+//        float minArray[]  = new float[n];  //vysledok min
+//        float avgArray[]  = new float[n];  //vysledok avg 
+        float minArray[]  = new float[10000];  //vysledok min
+        float avgArray[]  = new float[10000];  //vysledok avg 
         
         for (int i = 0; i < point_cloud1.size(); i++) {
             srcArrayX[i] = (float) point_cloud1.get(i).getX();
@@ -104,8 +108,10 @@ public class CLmetrika
         memObjects[0] = clCreateBuffer(context,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, srcX, null);
         memObjects[1] = clCreateBuffer(context,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, srcY, null);
         memObjects[2] = clCreateBuffer(context,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, srcZ, null);
-        memObjects[3] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * n, null, null);
-        memObjects[4] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * n, null, null);
+//        memObjects[3] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * n, null, null);
+//        memObjects[4] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * n, null, null);
+        memObjects[3] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 10000, null, null);
+        memObjects[4] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 10000, null, null);
         
         // Program Setup - The source code of the OpenCL program to execute
         String programSource = readFile("kernels/CLmetrika.cl");
@@ -114,12 +120,14 @@ public class CLmetrika
         cl_program program = clCreateProgramWithSource(context,
             1, new String[]{ programSource }, null, null);
         
+System.out.println("building metrika kernel...");
         // Build the program
         clBuildProgram(program, 0, null, null, null, null);
-        
+System.out.println("...done");
+
         // Create the kernel
         cl_kernel kernel = clCreateKernel(program, "CLmetrika", null);
-        
+
         // Set the arguments for the kernel
         clSetKernelArg(kernel, 0, Sizeof.cl_mem, Pointer.to(memObjects[0]));
         clSetKernelArg(kernel, 1, Sizeof.cl_mem, Pointer.to(memObjects[1]));
@@ -127,24 +135,42 @@ public class CLmetrika
         clSetKernelArg(kernel, 3, Sizeof.cl_mem, Pointer.to(memObjects[3]));
         clSetKernelArg(kernel, 4, Sizeof.cl_mem, Pointer.to(memObjects[4]));
         clSetKernelArg(kernel, 5, Sizeof.cl_int, Pointer.to(new int[]{n}));
-        clSetKernelArg(kernel, 6, Sizeof.cl_float, Pointer.to( new float[]{dist_last} ));
-        
+//        clSetKernelArg(kernel, 6, Sizeof.cl_int, Pointer.to(new int[]{m}));
+        clSetKernelArg(kernel, 7, Sizeof.cl_float, Pointer.to( new float[]{dist_last} ));
+
         
         // Set the work-item dimensions
-        long global_work_size[] = new long[]{n};
-        long local_work_size[] = new long[]{1};
+        long global_work_size[] = new long[]{10000};
+//        long local_work_size[] = new long[]{10}; //moze byt aj null ,potom sa sam rozhodne
+        long local_work_size[] = null; //moze byt aj null ,potom sa sam rozhodne
         
-        // Execute the kernel
-        clEnqueueNDRangeKernel(commandQueue, kernel, 1, null,
-            global_work_size, local_work_size, 0, null, null);
-        
-        // Read the output data MIN
-        clEnqueueReadBuffer(commandQueue, memObjects[3], CL_TRUE, 0,
-            n * Sizeof.cl_float, min, 0, null, null);
-        // Read the output data AVG
-        clEnqueueReadBuffer(commandQueue, memObjects[4], CL_TRUE, 0,
-            n * Sizeof.cl_float, avg, 0, null, null);
-        
+        for (int j = 0; j <= m; j++) {
+            
+            clSetKernelArg(kernel, 6, Sizeof.cl_int, Pointer.to(new int[]{j}));
+            
+            System.out.println("executing metrika kernel");
+            // Execute the kernel
+            clEnqueueNDRangeKernel(commandQueue, kernel, 1, null,
+                    global_work_size, local_work_size, 0, null, null);
+            System.out.println("stop metrika kernel");
+            // Read the output data 
+            int clEnqueueReadBuffer = clEnqueueReadBuffer(commandQueue, memObjects[3], CL_TRUE, 0,
+                    10000 * Sizeof.cl_float, min, 0, null, null);
+            System.out.println("1read metrika kernel +err:" + clEnqueueReadBuffer);
+            
+            int clEnqueueReadBuffer1 = clEnqueueReadBuffer(commandQueue, memObjects[4], CL_TRUE, 0,
+                    10000 * Sizeof.cl_float, avg, 0, null, null);
+            System.out.println("2read metrika kernel +err:" + clEnqueueReadBuffer1);
+            
+            for (int i = j*10000; i < (j+1)*10000 && i < point_cloud1.size(); i++) {
+                point_cloud1.get(i).setMin(minArray[i-j*10000]);
+                point_cloud1.get(i).setAvg(avgArray[i-j*10000]);
+                System.out.println(i+" "+ (i-j*10000) + " min/avg " + minArray[i-j*10000] + " / " + avgArray[i-j*10000]);
+            }
+            
+        }
+
+
         // Release kernel, program, and memory objects
         clReleaseMemObject(memObjects[0]);
         clReleaseMemObject(memObjects[1]);
@@ -155,15 +181,15 @@ public class CLmetrika
         clReleaseProgram(program);
         clReleaseCommandQueue(commandQueue);
         clReleaseContext(context);
-        
+System.out.println("result metrika kernel");
         // the result
         // priradime do mracna kazdemu bodu jeho metriku ! :-)
-        for (int i = 0; i < point_cloud1.size(); i++) {
-            point_cloud1.get(i).setMin(minArray[i]);
-            point_cloud1.get(i).setAvg(avgArray[i]);
-            System.out.println(i + " min/avg " + minArray[i] + " / " + avgArray[i]);
-        }
-
+//        for (int i = 0; i < point_cloud1.size(); i++) {
+//            point_cloud1.get(i).setMin(minArray[i]);
+//            point_cloud1.get(i).setAvg(avgArray[i]);
+//            System.out.println(i + " min/avg " + minArray[i] + " / " + avgArray[i]);
+//        }
+System.out.println("return metrika kernel");
         return 0;
     }
     
@@ -174,33 +200,6 @@ public class CLmetrika
     ArrayList<Point> /*Point[]*/ sort() {
         Collections.sort(point_cloud1);
         return point_cloud1;
-    }
-
-    /**
-     * distance from A to B
-     * return double
-     */
-    public double distance(Point a, Point b) {  
-        double dx, dy, dz;
-
-        dx = a.getX() - b.getX();
-        dy = a.getY() - b.getY();
-        dz = a.getZ() - b.getZ();
-        
-        return  Math.sqrt((double) (dx * dx + dy * dy + dz * dz));
-    }
-
-    /**
-     * zaokruhlenie na pozadovany pocet des miest
-     * @param Rval
-     * @param Rpl
-     * @return
-     */
-    private Double round(Double Rval, int Rpl) {
-        double p = Math.pow(10, Rpl);
-        Rval = Rval * p;
-        double tmp = Math.round(Rval);
-        return  tmp / p;
     }
 
 /**
@@ -215,7 +214,7 @@ public class CLmetrika
         try
         {
             BufferedReader br = new BufferedReader(
-                new InputStreamReader(new FileInputStream(fileName)));
+            new InputStreamReader(new FileInputStream(fileName)));
             StringBuffer sb = new StringBuffer();
             String line = null;
             while (true)

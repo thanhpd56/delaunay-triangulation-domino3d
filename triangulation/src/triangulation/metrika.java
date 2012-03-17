@@ -51,7 +51,7 @@ public class metrika {
             point_cloud1.get(i).setMin(dist_last);
             point_cloud1.get(i).setAvg(result);
             System.out.println(i + " min/avg " + dist_last + " / " + result);
-            System.out.println(i + " min/avg " + point_cloud1.get(i).getMin() + " / " + point_cloud1.get(i).getAvg());
+//            System.out.println(i + " min/avg " + point_cloud1.get(i).getMin() + " / " + point_cloud1.get(i).getAvg());
             dist_last = Double.MAX_VALUE;
         }
 
