@@ -161,6 +161,11 @@ public class Triangulate {
         
         //vypocet uplnosti povrchu modelu
         System.out.println("Úplnosť povrchu modelu: "+ui.jProgressBar1.getValue()+" %");
+        ui.setStatus1("Úplnosť povrchu modelu: "+ui.jProgressBar1.getValue()+" %");
+        if (ui.jProgressBar1.getValue() < 70) {
+            System.out.println("Úplnosť modelu je pod 70%, doporučujem spustiť trianguláciu s inými nastaveniami.");
+            ui.setStatus1("Úplnosť modelu je pod 70% (t.j."+ ui.jProgressBar1.getValue() +"%), doporučujem spustiť trianguláciu s inými nastaveniami.");
+        }
     }
 
     /**
@@ -1033,7 +1038,8 @@ System.out.println("b>>>>" + ppc.size() + "X"+j + "<<<" + ppc.toString());
             
             //koniec
             out.close();
-            System.out.println("EXPORT: Your file has been written");
+            System.out.println("EXPORT: Váš súbor bol úspešne zapísaný");
+            ui.setStatus2("EXPORT: Váš súbor bol úspešne zapísaný");
         } catch (IOException ex) {
             Logger.getLogger(Triangulate.class.getName()).log(Level.SEVERE, null, ex);
         } finally {

@@ -32,6 +32,7 @@ __kernel void
              __global float *min,
              __global float *avg,
              int n,
+             int m,
              float dist_last)
 {
     float dx;
@@ -39,24 +40,28 @@ __kernel void
     float dz;
     float sum;
     float tmp;
+    float last = dist_last;
 
     int gid = get_global_id(0);
-    
-    for (int i = 0; i < n; i++) {
-        dx = x[i] - x[gid];
-        dy = y[i] - y[gid];
-        dz = z[i] - z[gid];
-        tmp = sqrt(dx*dx + dy*dy + dz*dz);
-        
-//        if(dist_last >= tmp && i != gid  ){
-        if(dist_last >= tmp && tmp != 0.0){
-            dist_last = tmp;
+    gid = gid + m*10000;
+
+//    for(int j = 0; j < m; j++){
+        for (int i=0; i < n; i++) {
+//            dx = x[i] - x[gid + j*1000];
+            dx = x[i] - x[gid];
+            dy = y[i] - y[gid];
+            dz = z[i] - z[gid];
+            tmp = sqrt(dx*dx + dy*dy + dz*dz);
+
+    //        if(dist_last >= tmp && i != gid  ){
+            if(last >= tmp && tmp != 0.0){
+                last = tmp;
+            }
+            sum = sum + tmp;
         }
-        sum = sum + tmp;
-    }
-    avg[gid] = sum/n;
-    min[gid] = dist_last;
+
+        avg[gid-m*10000] =  sum/n;
+        min[gid-m*10000] =  last; 
+        }
+//    }
     
-    
-    
-}
