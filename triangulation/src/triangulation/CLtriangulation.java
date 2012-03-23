@@ -19,21 +19,34 @@ class CLtriangulation {
     private ArrayList<Point> edges = new ArrayList<Point>();
     private ArrayList<Point> face = new ArrayList<Point>();
     
-    public CLtriangulation(ArrayList<Edge> edges1, 
-            ArrayList<Face> face, 
+//    public CLtriangulation(ArrayList<Edge> edges, 
+//            ArrayList<Face> face, 
+//            ArrayList<Point> point_cloud, 
+//            int amount) {
+    public CLtriangulation(
+            int[] firstTriangle,
             ArrayList<Point> point_cloud, 
             int amount) {
                 // Create input- and output data 
-        Point[] ppp = new Point[amount];
         
+        Float dist_last = Float.MAX_VALUE;
         int n = amount;
         float srcArrayX[] = new float[n]; //x
         float srcArrayY[] = new float[n]; //y
         float srcArrayZ[] = new float[n]; //z
-        float colXArray[] = new float[n];  //vysledok po collapse x
-        float colYArray[] = new float[n];  //y
-        float colZArray[] = new float[n];  //z
+//        float colXArray[] = new float[n];  //x
+//        float colYArray[] = new float[n];  //y
+//        float colZArray[] = new float[n];  //z
         int   valid[]     = new int[n];
+        int   edgeL[]  = new int[3*n]; //podla The Euler-Poincaré Formula 
+        int   edgeR[]  = new int[3*n]; //podla The Euler-Poincaré Formula 
+//??? potrebuje xyz/alebo stale pocitat stred  -->>  int   edgeMid[]= new int[3*n]; //podla The Euler-Poincaré Formula 
+        int   faceV1[] = new int[4*n]; //Vert:Face:Edge 1:2:3 -> The Euler-Poincaré Formula 
+        int   faceV2[] = new int[4*n]; //Vert:Face:Edge 1:2:3 -> The Euler-Poincaré Formula 
+        int   faceV3[] = new int[4*n]; //Vert:Face:Edge 1:2:3 -> The Euler-Poincaré Formula 
+        
+
+
         
         
         for (int i = 0; i < point_cloud.size(); i++) {
@@ -45,10 +58,9 @@ class CLtriangulation {
         Pointer srcX = Pointer.to(srcArrayX);
         Pointer srcY = Pointer.to(srcArrayY);
         Pointer srcZ = Pointer.to(srcArrayZ);
-        Pointer colX = Pointer.to(colXArray);
-        Pointer colY = Pointer.to(colYArray);
-        Pointer colZ = Pointer.to(colZArray);
         Pointer val = Pointer.to(valid);
+
+
 
         // The platform, device type and device number
         // that will be used
@@ -93,14 +105,13 @@ class CLtriangulation {
             clCreateCommandQueue(context, device, 0, null);
 
         // Allocate the memory objects for the input- and output data
-        cl_mem memObjects[] = new cl_mem[7];
+        cl_mem memObjects[] = new cl_mem[6];
         memObjects[0] = clCreateBuffer(context,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, srcX, null);
         memObjects[1] = clCreateBuffer(context,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, srcY, null);
         memObjects[2] = clCreateBuffer(context,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, srcZ, null);
-        memObjects[3] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * n, null, null);
-        memObjects[4] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * n, null, null);
-        memObjects[5] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * n, null, null);
-        memObjects[6] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_int * n, val, null);
+        memObjects[3] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_int * n, val, null);
+        memObjects[4] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 3*n, null, null);
+        memObjects[5] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 4*n, null, null);
         
         // Program Setup - The source code of the OpenCL program to execute
         String programSource = readFile("kernels/CLtriangulation.cl");
@@ -123,30 +134,28 @@ class CLtriangulation {
         clSetKernelArg(kernel, 4, Sizeof.cl_mem, Pointer.to(memObjects[4]));
         clSetKernelArg(kernel, 5, Sizeof.cl_mem, Pointer.to(memObjects[5]));
         clSetKernelArg(kernel, 6, Sizeof.cl_int, Pointer.to(new int[]{n}));
-//        clSetKernelArg(kernel, 7, Sizeof.cl_float, Pointer.to( new float[]{tolerance} ));
-        clSetKernelArg(kernel, 8, Sizeof.cl_mem, Pointer.to(memObjects[6]));
+        clSetKernelArg(kernel, 7, Sizeof.cl_int, Pointer.to(firstTriangle));
+        clSetKernelArg(kernel, 8,Sizeof.cl_float,Pointer.to( new float[]{dist_last} ));
         
         
         // Set the work-item dimensions
         long global_work_size[] = new long[]{n};
-        long local_work_size[] = new long[]{1};
+        long local_work_size[] = new long[]{1}; //1 grup sa zrobi, alebo null-spravi kolko chce
         
         // Execute the kernel
         clEnqueueNDRangeKernel(commandQueue, kernel, 1, null,
             global_work_size, local_work_size, 0, null, null);
         
-        // Read the output data colapsed X
+        // Read the output data 
         clEnqueueReadBuffer(commandQueue, memObjects[3], CL_TRUE, 0,
-            n * Sizeof.cl_float, colX, 0, null, null);
-        // Read the output data Y
-        clEnqueueReadBuffer(commandQueue, memObjects[4], CL_TRUE, 0,
-            n * Sizeof.cl_float, colY, 0, null, null);
-        // Read the output data Z
-        clEnqueueReadBuffer(commandQueue, memObjects[5], CL_TRUE, 0,
-            n * Sizeof.cl_float, colZ, 0, null, null);
-        // Read the output data VALID
-        clEnqueueReadBuffer(commandQueue, memObjects[6], CL_TRUE, 0,
-            n * Sizeof.cl_int, val, 0, null, null);
+            n * Sizeof.cl_float, val, 0, null, null);
+
+//        clEnqueueReadBuffer(commandQueue, memObjects[4], CL_TRUE, 0,
+//            n * Sizeof.cl_float, edg, 0, null, null);
+//
+//        clEnqueueReadBuffer(commandQueue, memObjects[5], CL_TRUE, 0,
+//            n * Sizeof.cl_float, fac, 0, null, null);
+        
         
         // Release kernel, program, and memory objects
         clReleaseMemObject(memObjects[0]);
@@ -166,10 +175,10 @@ class CLtriangulation {
         //prepisanie ciselID bodov, kedze mohli vzniknut viacere s rovn. cislomID
         for (int i = 0; i < point_cloud.size(); i++) {
             if (valid[i] == 1) {
-                returnArray.add(new Point(j++, 
-                        colXArray[i], 
-                        colYArray[i], 
-                        colZArray[i]));
+//                returnArray.add(new Point(j++, 
+//                        colXArray[i], 
+//                        colYArray[i], 
+//                        colZArray[i]));
 //                System.out.println(""+returnArray.get(i).toString());
             }
         }

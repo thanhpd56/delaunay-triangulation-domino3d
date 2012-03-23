@@ -59,7 +59,7 @@ __kernel void
             }
             sum = sum + tmp;
         }
-
+        
         avg[gid-m*10000] =  sum/n;
         min[gid-m*10000] =  last; 
         }

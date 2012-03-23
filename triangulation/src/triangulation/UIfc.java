@@ -12,7 +12,9 @@
  */
 package triangulation;
 
+import java.awt.Color;
 import java.io.File;
+import java.util.regex.*;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 import org.jcp.xml.dsig.internal.dom.Utils;
@@ -122,6 +124,11 @@ class UIfc extends javax.swing.JDialog {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jButton1.setText("Ok");
+        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jButton1MouseEntered(evt);
+            }
+        });
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
@@ -371,6 +378,8 @@ private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
     
     jButton1.setText("Koniec");
     jButton1.setEnabled(false);
+    jButton2.setEnabled(false);
+    tolerance.setEnabled(false);
     
     setVisible(false);
     setVisible(true);
@@ -438,6 +447,19 @@ private void jPanel1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:eve
         else jButton1.setText("Koniec");
     }
 }//GEN-LAST:event_jPanel1MousePressed
+
+private void jButton1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseEntered
+    if (tolerance.isEnabled()) {
+        if (!tolerance.getText().matches("[0-9]*\\.?[0-9]*")) {
+            tolerance.setBackground(Color.red);
+            jButton1.setEnabled(false);
+        } else {
+            tolerance.setBackground(Color.white);
+            jButton1.setEnabled(true);
+        }
+    }
+    
+}//GEN-LAST:event_jButton1MouseEntered
 
     /**
      * @param args the command line arguments

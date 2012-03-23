@@ -19,7 +19,10 @@ class CLcollapse extends ArrayList {
 
     ArrayList<Point> returnArray = new ArrayList<Point>();
     
-    CLcollapse(float tolerance, ArrayList<Point> point_cloud, int amount) {
+    CLcollapse(
+            float tolerance, 
+            ArrayList<Point> point_cloud, 
+            int amount) {
                 // Create input- and output data 
         Point[] ppp = new Point[amount];
         
