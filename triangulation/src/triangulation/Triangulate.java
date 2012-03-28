@@ -21,6 +21,8 @@ import triangulation.Point;
 import java.util.Random;
 import sun.org.mozilla.javascript.internal.ast.Jump;
 
+
+
 /**
  * @author Dominik Januvka 2011
  */
@@ -134,7 +136,8 @@ public class Triangulate {
         b - circumcircles
         c - spirala, pozerat +1 bod hore, dole, doprava...
          */
-        triangulate();  //ostatne 3uholniky
+//        triangulate();  //ostatne 3uholniky
+        CLtriangulate();  //ostatne 3uholniky cez OenCL
         
         //dokreslime konvexne trojuholniky po krajoch v 2D (mozme, NEMUSIME)
 //        konvex();
@@ -164,7 +167,20 @@ public class Triangulate {
     private int getRandomPoints(int amount, boolean fromFile) {
         if (!fromFile) {
             for (int i = 0; i < amount; i++) {
-                point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100)));
+//                point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100)));
+                point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100), 1));
+                
+//        point_cloud1.add( new Point(0,10,10,1));
+//        point_cloud1.add( new Point(1,10,20,1));
+//        point_cloud1.add( new Point(2,10,30,1));
+//        point_cloud1.add( new Point(3,20,10,1));
+//        point_cloud1.add( new Point(4,20,20,1));
+//        point_cloud1.add( new Point(5,20,30,1));
+//        point_cloud1.add( new Point(6,30,10,1));
+//        point_cloud1.add( new Point(7,30,20,1));
+//        point_cloud1.add( new Point(8,30,30,1));
+//        point_cloud1.add( new Point(9,40,10,1));
+
             }
             return amount;
         } else {
@@ -452,19 +468,16 @@ public class Triangulate {
      * samotna triangulacia GPGPU
      */
     private void CLtriangulate() {
-        int edgeID = 3;
-        int edgeJ = -1;
-        int edgeK = -1;
-        int xxx;
-        Double dist = new Double(0);
-        Double dist_last = Double.MAX_VALUE;
         
-//        point_cloud1 = new CLtriangulation( edges1, face, point_cloud1, amount).getReturnArray();
-        point_cloud1 = new CLtriangulation( firstTriangle, point_cloud1, amount ).getReturnArray();
-        if (point_cloud1 == null) {
-            System.out.println("CL ERROR, CLtriangulation, point clound returns NULL");
+        CLtriangulation tri = new CLtriangulation( firstTriangle, point_cloud1, amount );
+        
+        if (tri.getEdges() == null) {
+            System.out.println("CL ERROR, CLtriangulation, returns NULL edges");
         }
         
+//        edges1.addAll(tri.getEdges());
+        edges1=(tri.getEdges());
+        face.addAll(tri.getFace());
     }
     
 
@@ -556,7 +569,7 @@ public class Triangulate {
 
     
     /**
-     * delaunay circumcircle,
+     * delaunay circumcircle
      */
     private int circleHasPoint1(Point a, Point b, Point c) {
         Circle cc = circumcircle(a, b, c);
@@ -733,7 +746,7 @@ public class Triangulate {
     /**
      * http://www.java-gaming.org/topics/how-can-i-find-the-angle-between-two-lines/3332/msg/30950/view.html#msg30950
      * dot is the cos of angle and the angle is:
-        angle = Math.acos(dot)
+     *   angle = Math.acos(dot)
      * @param p1
      * @param p2
      * @param p3

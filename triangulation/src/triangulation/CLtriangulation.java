@@ -15,9 +15,8 @@ import java.util.Collections;
  */
 class CLtriangulation {
 
-    private ArrayList<Point> returnArray = new ArrayList<Point>();
-    private ArrayList<Point> edges = new ArrayList<Point>();
-    private ArrayList<Point> face = new ArrayList<Point>();
+    private ArrayList<Edge> edges = new ArrayList<Edge>();
+    private ArrayList<Face> face = new ArrayList<Face>();
     
 //    public CLtriangulation(ArrayList<Edge> edges, 
 //            ArrayList<Face> face, 
@@ -31,41 +30,90 @@ class CLtriangulation {
         
         Float dist_last = Float.MAX_VALUE;
         int n = amount;
+        int id[] =  new int [2];
+        id[0] = 3;
+        id[1] = 0;
+        int idee[] = {0};
+        int idff[] = {0};
         float srcArrayX[] = new float[n]; //x
         float srcArrayY[] = new float[n]; //y
         float srcArrayZ[] = new float[n]; //z
-//        float colXArray[] = new float[n];  //x
-//        float colYArray[] = new float[n];  //y
-//        float colZArray[] = new float[n];  //z
-        int   valid[]     = new int[n];
+        float metrika[] = new float[n]; //metrika
+
+        int   validPoint[]  = new int[n];
+        for (int i = 0; i < n; i++) {
+            validPoint[i] = 1;
+        }
+        
         int   edgeL[]  = new int[3*n]; //podla The Euler-Poincaré Formula 
         int   edgeR[]  = new int[3*n]; //podla The Euler-Poincaré Formula 
+        int   validEdge[]  = new int[3*n]; //podla The Euler-Poincaré Formula 
+        for (int i = 0; i < 3*n; i++) {
+            validEdge[i] = 0;
+            edgeL[i] = -1;
+            edgeR[i] = -1;
+        }
 //??? potrebuje xyz/alebo stale pocitat stred  -->>  int   edgeMid[]= new int[3*n]; //podla The Euler-Poincaré Formula 
         int   faceV1[] = new int[4*n]; //Vert:Face:Edge 1:2:3 -> The Euler-Poincaré Formula 
         int   faceV2[] = new int[4*n]; //Vert:Face:Edge 1:2:3 -> The Euler-Poincaré Formula 
         int   faceV3[] = new int[4*n]; //Vert:Face:Edge 1:2:3 -> The Euler-Poincaré Formula 
+        for (int i = 0; i < 4*n; i++) {
+            faceV1[i] = -1;
+            faceV2[i] = -1;
+            faceV3[i] = -1;
+        }
         
-
-
+        //musim zapisat existujuci 1. 3uh z danych 3 bodov do polí
+        validPoint[firstTriangle[0]] = -1;
+        validPoint[firstTriangle[1]] = -1; //set used/invalid
+        validPoint[firstTriangle[2]] = -1;
+        //makeEdge 0
+        
+        edgeL[0] = firstTriangle[0];
+        edgeR[0] = firstTriangle[1];
+        validEdge[0] = 1;
+        //makeEdge 1
+        edgeL[1] = firstTriangle[0];
+        edgeR[1] = firstTriangle[2];
+        validEdge[1] = 1;
+        //makeEdge 2
+        edgeL[2] = firstTriangle[1];
+        edgeR[2] = firstTriangle[2];
+        validEdge[2] = 1;
+        
+        //todo: nezabudnut na konci pripocitat do arrayu face nakoniec prvy 3uh
+        //...
+        
         
         
         for (int i = 0; i < point_cloud.size(); i++) {
             srcArrayX[i] = (float) point_cloud.get(i).getX();
             srcArrayY[i] = (float) point_cloud.get(i).getY();
             srcArrayZ[i] = (float) point_cloud.get(i).getZ();
+            metrika[i]   = (float) point_cloud.get(i).getMin();
         }
         
         Pointer srcX = Pointer.to(srcArrayX);
         Pointer srcY = Pointer.to(srcArrayY);
         Pointer srcZ = Pointer.to(srcArrayZ);
-        Pointer val = Pointer.to(valid);
+        Pointer min = Pointer.to(metrika);
+        Pointer valP  = Pointer.to(validPoint);
+        Pointer eL   = Pointer.to(edgeL);
+        Pointer eR   = Pointer.to(edgeR);
+        Pointer valE = Pointer.to(validEdge);
+        Pointer fac1 = Pointer.to(faceV1);
+        Pointer fac2 = Pointer.to(faceV2);
+        Pointer fac3 = Pointer.to(faceV3);
+        Pointer ids = Pointer.to(id);
+        Pointer idE = Pointer.to(idee);
+        Pointer idF = Pointer.to(idff);
 
 
 
         // The platform, device type and device number
         // that will be used
         final int platformIndex = 0;
-        final long deviceType = CL_DEVICE_TYPE_ALL;
+        final long deviceType = CL_DEVICE_TYPE_DEFAULT;
         final int deviceIndex = 0;
 
         // Enable exceptions and subsequently omit error checks in this sample
@@ -105,13 +153,22 @@ class CLtriangulation {
             clCreateCommandQueue(context, device, 0, null);
 
         // Allocate the memory objects for the input- and output data
-        cl_mem memObjects[] = new cl_mem[6];
-        memObjects[0] = clCreateBuffer(context,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, srcX, null);
+        cl_mem memObjects[] = new cl_mem[14];
+        memObjects[7] = clCreateBuffer(context,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, srcX, null);
         memObjects[1] = clCreateBuffer(context,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, srcY, null);
         memObjects[2] = clCreateBuffer(context,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, srcZ, null);
-        memObjects[3] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_int * n, val, null);
-        memObjects[4] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 3*n, null, null);
-        memObjects[5] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 4*n, null, null);
+        memObjects[3] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, min, null);
+        memObjects[4] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_int * n, valP, null);
+        memObjects[5] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_float * 3*n, eL, null);
+        memObjects[6] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_float * 3*n, eR, null);
+        memObjects[0] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_float * 3*n, valE, null);
+        memObjects[8] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 4*n, null, null);
+        memObjects[9] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 4*n, null, null);
+        memObjects[10] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 4*n, null, null);
+        memObjects[11] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_int * 2, ids, null);
+        memObjects[12] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_int, idE, null);
+        memObjects[13] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_int, idF, null);
+
         
         // Program Setup - The source code of the OpenCL program to execute
         String programSource = readFile("kernels/CLtriangulation.cl");
@@ -133,28 +190,53 @@ class CLtriangulation {
         clSetKernelArg(kernel, 3, Sizeof.cl_mem, Pointer.to(memObjects[3]));
         clSetKernelArg(kernel, 4, Sizeof.cl_mem, Pointer.to(memObjects[4]));
         clSetKernelArg(kernel, 5, Sizeof.cl_mem, Pointer.to(memObjects[5]));
-        clSetKernelArg(kernel, 6, Sizeof.cl_int, Pointer.to(new int[]{n}));
-        clSetKernelArg(kernel, 7, Sizeof.cl_int, Pointer.to(firstTriangle));
-        clSetKernelArg(kernel, 8,Sizeof.cl_float,Pointer.to( new float[]{dist_last} ));
+        clSetKernelArg(kernel, 6, Sizeof.cl_mem, Pointer.to(memObjects[6]));
+        clSetKernelArg(kernel, 7, Sizeof.cl_mem, Pointer.to(memObjects[7]));
+        clSetKernelArg(kernel, 8, Sizeof.cl_mem, Pointer.to(memObjects[8]));
+        clSetKernelArg(kernel, 9, Sizeof.cl_mem, Pointer.to(memObjects[9]));
+        clSetKernelArg(kernel, 10, Sizeof.cl_mem, Pointer.to(memObjects[10]));
+        clSetKernelArg(kernel, 11, Sizeof.cl_int, Pointer.to(new int[]{n}));
+//        clSetKernelArg(kernel, 7, Sizeof.cl_int, Pointer.to(firstTriangle));
+        clSetKernelArg(kernel, 12,Sizeof.cl_float,Pointer.to( new float[]{dist_last} ));
+        clSetKernelArg(kernel, 13,Sizeof.cl_mem,Pointer.to( memObjects[11]));
+        clSetKernelArg(kernel, 14,Sizeof.cl_mem,Pointer.to( memObjects[12]));
+        clSetKernelArg(kernel, 15,Sizeof.cl_mem,Pointer.to( memObjects[13]));
         
         
         // Set the work-item dimensions
-        long global_work_size[] = new long[]{n};
+        long global_work_size[] = new long[]{3*n};
         long local_work_size[] = new long[]{1}; //1 grup sa zrobi, alebo null-spravi kolko chce
-        
+System.out.println("executing 3 kernel");
         // Execute the kernel
         clEnqueueNDRangeKernel(commandQueue, kernel, 1, null,
             global_work_size, local_work_size, 0, null, null);
+System.out.println("stop 3 kernel");
+  clFinish(commandQueue);
+System.out.println("clFinish 3 kernel");
+        // Read the output data
+        int clEnqueueReadBuffer = clEnqueueReadBuffer(commandQueue, memObjects[5], CL_TRUE, 0,
+                                      3*n * Sizeof.cl_float, eL, 0, null, null);
+System.out.println("1read 3 kernel +err:" + clEnqueueReadBuffer);
+        clEnqueueReadBuffer(commandQueue, memObjects[6], CL_TRUE, 0,
+            3*n * Sizeof.cl_float, eR, 0, null, null);
         
-        // Read the output data 
+        clEnqueueReadBuffer(commandQueue, memObjects[0], CL_TRUE, 0,
+            3*n * Sizeof.cl_float, valE, 0, null, null);
+        
+        clEnqueueReadBuffer(commandQueue, memObjects[8], CL_TRUE, 0,
+            4*n * Sizeof.cl_float, fac1, 0, null, null);
+        
+        clEnqueueReadBuffer(commandQueue, memObjects[9], CL_TRUE, 0,
+            4*n * Sizeof.cl_float, fac2, 0, null, null);
+        
+        clEnqueueReadBuffer(commandQueue, memObjects[10], CL_TRUE, 0,
+            4*n * Sizeof.cl_float, fac3, 0, null, null);
+        
+        //read min
         clEnqueueReadBuffer(commandQueue, memObjects[3], CL_TRUE, 0,
-            n * Sizeof.cl_float, val, 0, null, null);
-
-//        clEnqueueReadBuffer(commandQueue, memObjects[4], CL_TRUE, 0,
-//            n * Sizeof.cl_float, edg, 0, null, null);
-//
-//        clEnqueueReadBuffer(commandQueue, memObjects[5], CL_TRUE, 0,
-//            n * Sizeof.cl_float, fac, 0, null, null);
+            n * Sizeof.cl_float, min, 0, null, null);
+        
+        
         
         
         // Release kernel, program, and memory objects
@@ -164,44 +246,59 @@ class CLtriangulation {
         clReleaseMemObject(memObjects[3]);
         clReleaseMemObject(memObjects[4]);
         clReleaseMemObject(memObjects[5]);
+        clReleaseMemObject(memObjects[6]);
+        clReleaseMemObject(memObjects[7]);
+        clReleaseMemObject(memObjects[8]);
+        clReleaseMemObject(memObjects[9]);
+        clReleaseMemObject(memObjects[10]);
+        clReleaseMemObject(memObjects[11]);
+        clReleaseMemObject(memObjects[12]);
+        clReleaseMemObject(memObjects[13]);
         clReleaseKernel(kernel);
         clReleaseProgram(program);
         clReleaseCommandQueue(commandQueue);
         clReleaseContext(context);
         
+        for (int i = 0; i < 3*n; i++) {
+                System.out.println(">>"+edgeL[i]+" "+edgeR[i]);
+        }
+        for (int i = 0; i < n; i++) {
+                System.out.println("XX"+metrika[i]);
+        }
+        
+
         // the result
-        // priradime do mracna kazdemu bodu jeho nove xyz suradnice
-        int j = 0; 
-        //prepisanie ciselID bodov, kedze mohli vzniknut viacere s rovn. cislomID
-        for (int i = 0; i < point_cloud.size(); i++) {
-            if (valid[i] == 1) {
-//                returnArray.add(new Point(j++, 
-//                        colXArray[i], 
-//                        colYArray[i], 
-//                        colZArray[i]));
-//                System.out.println(""+returnArray.get(i).toString());
+        for (int i = 0; i < 3*n; i++) {
+//            if (validEdge[i] == 1) {
+            if (edgeL[i] >= 0 && edgeR[i] >= 0) {
+                edges.add(new Edge(point_cloud.get(edgeL[i]), point_cloud.get(edgeR[i])));
             }
         }
 
-        System.out.println("b>>>>" + point_cloud.size() + "X"+j + "<<<" + point_cloud.toString());
+        System.out.println(">>"+edges.toString());
+        
+        for (int i = 0; i < 4*n; i++) {
+            if (faceV1[i] != -1) {
+                face.add(new Face(faceV1[i], faceV2[i], faceV3[i]));
+            }
+        }
+        
+        System.out.println("##"+face.toString());
+
+//        System.out.println("b>>>>" + point_cloud.size() + "X"+j + "<<<" + point_cloud.toString());
         //end
     }
-    /**
-     * @return the returnArray
-     */
-    public ArrayList<Point> getReturnArray() {
-        return returnArray;
-    }
+
     /**
      * @return the edges
      */
-    public ArrayList<Point> getEdges() {
+    public ArrayList<Edge> getEdges() {
         return edges;
     }
     /**
      * @return the face
      */
-    public ArrayList<Point> getFace() {
+    public ArrayList<Face> getFace() {
         return face;
     }
     /**

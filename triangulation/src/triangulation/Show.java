@@ -38,7 +38,7 @@ public class Show extends javax.swing.JFrame {
         try {
             for (int i = 0; i < point_cloud1.size(); i++) {
                 g.fillOval((int)point_cloud1.get(i).getX() * scale + offset, (int)point_cloud1.get(i).getY() * scale + offset, 5, 5);
-//                g.drawString("" + point_cloud1.get(i).getID(), (int)point_cloud1.get(i).getX() * scale + offset, (int)point_cloud1.get(i).getY() * scale + offset);
+                g.drawString("" + point_cloud1.get(i).getID(), (int)point_cloud1.get(i).getX() * scale + offset, (int)point_cloud1.get(i).getY() * scale + offset);
             }
         } catch (Exception e) {
         }
@@ -57,16 +57,15 @@ public class Show extends javax.swing.JFrame {
         try {
             for (int i = 0; i < edges.size(); i++) {
                 g.drawLine((int) edges.get(i).l.getX() * scale + offset, (int) edges.get(i).l.getY() * scale + offset, (int) edges.get(i).r.getX() * scale + offset, (int) edges.get(i).r.getY() * scale + offset);
-//                if (i == 0 || i == 1 || i == 2) {
-//                    g.setColor(Color.CYAN);
-//                    g.drawString("" + point_cloud1.get(i).getID(), (int) point_cloud1.get(i).getX() * scale + offset, (int) point_cloud1.get(i).getY() * scale + offset);
-//                } else {
-//                    g.setColor(Color.blue);
-//                    g.drawLine((int) edges.get(i).l.getX() * scale + offset, (int) edges.get(i).l.getY() * scale + offset, (int) edges.get(i).r.getX() * scale + offset, (int) edges.get(i).r.getY() * scale + offset);
-//                }
+                if (i == 0 || i == 1 || i == 2) {
+                    g.setColor(Color.CYAN);
+                    g.drawString("" + point_cloud1.get(i).getID(), (int) point_cloud1.get(i).getX() * scale + offset, (int) point_cloud1.get(i).getY() * scale + offset);
+                } else {
+                    g.setColor(Color.blue);
+                    g.drawLine((int) edges.get(i).l.getX() * scale + offset, (int) edges.get(i).l.getY() * scale + offset, (int) edges.get(i).r.getX() * scale + offset, (int) edges.get(i).r.getY() * scale + offset);
+                }
                 
 //                if(edges.get(i).getMidpoint()!=null)g.setColor(Color.GREEN);g.fillOval((int)edges.get(i).getMidpoint().getX() * scale + offset, (int)edges.get(i).getMidpoint().getY() * scale + offset, 5, 5);g.setColor(Color.BLACK);g.drawString(""+i,(int)edges.get(i).getMidpoint().getX() * scale + offset, (int)edges.get(i).getMidpoint().getY() * scale + offset);
-                //g.drawString(""+i, edges[i].l.getX()*scale+offset, edges[i].r.getY()*scale+offset );
             } 
         } catch (Exception e) {
         }

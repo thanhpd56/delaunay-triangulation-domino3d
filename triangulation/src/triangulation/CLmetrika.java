@@ -198,7 +198,7 @@ System.out.println("return metrika kernel");
  * SORT
  */
     ArrayList<Point> /*Point[]*/ sort() {
-        Collections.sort(point_cloud1);
+//        Collections.sort(point_cloud1);
         return point_cloud1;
     }
 

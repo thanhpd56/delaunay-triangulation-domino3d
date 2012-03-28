@@ -49,7 +49,7 @@ class CLcollapse extends ArrayList {
         Pointer colX = Pointer.to(colXArray);
         Pointer colY = Pointer.to(colYArray);
         Pointer colZ = Pointer.to(colZArray);
-        Pointer val = Pointer.to(valid);
+        Pointer val  = Pointer.to(valid);
 
         // The platform, device type and device number
         // that will be used

@@ -48,7 +48,7 @@ public class Edge {
     }
 //to string
     public String toString (){
-        return "edge: "+l+","+r+","+isUsed();
+        return "edge: "+l.getID()+","+r.getID();
     }
 
     /**
