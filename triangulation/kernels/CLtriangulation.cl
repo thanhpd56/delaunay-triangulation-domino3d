@@ -130,8 +130,10 @@ inline int isInside1(float4 xxx, float3 ppp){
                 __global int *edgeR){
     for (int i = 0; i < sizeof(edgeL); i++) {
         if (
-            ((edgeR[i] == edgeR[edgeA]) &&  (edgeL[i] == edgeL[edgeB])) ||
-            ((edgeL[i] == edgeL[edgeA]) &&  (edgeR[i] == edgeR[edgeB]))
+//            ((edgeR[i] == edgeR[edgeA]) &&  (edgeL[i] == edgeL[edgeB])) ||
+//            ((edgeL[i] == edgeL[edgeA]) &&  (edgeR[i] == edgeR[edgeB]))
+            ((edgeR[i] == edgeA) &&  (edgeL[i] == edgeB)) ||
+            ((edgeL[i] == edgeA) &&  (edgeR[i] == edgeB))
             ) {
             return true;
             }
@@ -189,7 +191,7 @@ __kernel void CLtriangulation
         }
         if(exx == 1) {
             wait = 0;
-edgeR[gid]=-4;
+//edgeR[gid]=-4;
             return;  //tvrdy koniec
         }
         
@@ -200,7 +202,8 @@ if(gid==0 || gid==1 || gid==2) {wait = 0;}
         
         if(counter==10000*gid || counter>100000) { //variabilna cakacia doba
             wait = 0; 
-edgeR[gid]=-6;
+//if(counter==8000*gid )edgeR[gid]=-6;
+//if( counter>160000)edgeR[gid]=-7;
             return;
             }
         counter++;
@@ -217,18 +220,23 @@ edgeR[gid]=-6;
 
 
 
+
+//        for (gid = 0; gid < 9*n; gid++) {
+//         edgeJ = -1;
+//         dist_last = dist_max;
+
     //4/for used points only
             for (int j = 0; j < n; j++) {
                 if (validP[j] < 0) {
                     if (edgeL[gid] == j || edgeR[gid] == j) {
                     } else {
                     isInside = -1;
-//                          xxx = circleHasPoint1((float3) (x[edgeL[gid]],y[edgeL[gid]],z[edgeL[gid]]), 
-//                              (float3) (x[edgeR[gid]],y[edgeR[gid]],z[edgeR[gid]]),
-//                              (float3) (x[j], y[j], z[j]) );
-                        xxx = circleHasPoint(x[edgeL[gid]],y[edgeL[gid]],z[edgeL[gid]], 
-                                             x[j], y[j], z[j],
-                                             x[edgeR[gid]], y[edgeR[gid]],z[edgeR[gid]]);
+                          xxx = circleHasPoint1((float3) (x[edgeL[gid]],y[edgeL[gid]],z[edgeL[gid]]), 
+                              (float3) (x[edgeR[gid]],y[edgeR[gid]],z[edgeR[gid]]),
+                              (float3) (x[j], y[j], z[j]) );
+//                        xxx = circleHasPoint(x[edgeL[gid]],y[edgeL[gid]],z[edgeL[gid]], 
+//                                             x[j], y[j], z[j],
+//                                             x[edgeR[gid]], y[edgeR[gid]],z[edgeR[gid]]);
                         for (int i = 0; i < n; i++) {
                         if (edgeL[gid] == i || j == i || edgeR[gid] == i ) {} //do nothing
                         else {
@@ -265,59 +273,91 @@ edgeR[gid]=-6;
 //     || min[edgeJ]*5 > distance( (float3) (x[edgeR[gid]],y[edgeR[gid]],z[edgeR[gid]]) , (float3)(x[edgeJ], y[edgeJ], z[edgeJ]))   ) 
                         {
                             //buď dve hrany a skončim, alebo jedna a skončim.
-                            if (!edgeExist(edgeL[gid], edgeJ, edgeL, edgeR) 
-//             >>>> dat radsej do pola <<<
-                             && !edgeExist(edgeR[gid], edgeJ, edgeL, edgeR)) {                                
-
+//                            if (!edgeExist(edgeL[gid], edgeJ, edgeL, edgeR) 
+//                             && !edgeExist(edgeR[gid], edgeJ, edgeL, edgeR)) {
+                                
+                                
+                                
+                                
+bool aaa = false;
+bool bbb = false;
+   for (int h = 0; h < 3*3*n; h++) {
+        if (((edgeR[h] == edgeL[gid]) &&  (edgeL[h] == edgeJ)) ||
+            ((edgeL[h] == edgeL[gid]) &&  (edgeR[h] == edgeJ))
+            ) {
+            bbb = true;
+//            break;
+            }
+        if (((edgeR[h] == edgeR[gid]) &&  (edgeL[h] == edgeJ)) ||
+            ((edgeL[h] == edgeR[gid]) &&  (edgeR[h] == edgeJ))
+            ) {
+            aaa = true;
+//            break;
+            }
+        }
+                                
+                                
+                                if( !aaa && !bbb ){
+                                
+                                
+                                
+                                validP[edgeJ] = -1;
         
-////                                int waiting = 1;
-////                                while (waiting) {
-//////                                    if (!atomic_xchg(id[0], 1))
-////                                    if (!atomic_xchg(idEdge_lock, 1)) {
-////                                        // critical section
-////                                        edgeID = id[0];
-////                                        id[0] = id[0] + 2;
-////                                        if(validE[edgeID]==1){
-////                                            edgeID++;
-////                                            id[0]++;
-////                                        }
-////                                        atomic_xchg(idEdge_lock, 0);
-////                                        waiting = 0;
-////                                    }
-////                                }
-////                                if(edgeID < sizeof(edgeL)){
-////                                    edgeL[ edgeID ] = edgeL[gid];
-////                                    edgeR[ edgeID ] = edgeJ;
-////                                    validE[ edgeID ] = 1;
-////
-////                                    edgeID = edgeID + 1;
-////
-////                                    edgeL[ edgeID ] = edgeR[gid];
-////                                    edgeR[ edgeID ] = edgeJ;
-////                                    validE[ edgeID ] = 1;
-////                                    } //else ??? ak sa vycerpaju zdroje (pole urcene rpe nove hrany) model nemusi byt cely
-//---------
-                            if(gid*2+4 < 3*n){
+                                int waiting = 1;                               
+                                while (waiting) {
+                                    if (!atomic_xchg(idEdge_lock, 1)) {
+                                        // critical section
+                                        edgeID = id[0];
+                                        id[0] = id[0] + 2;
+                                        if(validE[edgeID]==1){
+                                            edgeID++;
+                                            id[0]++;
+                                        }
+                                        atomic_xchg(idEdge_lock, 0);
+                                        waiting = 0;
+                                    }
+                                }
+//                                if(edgeID < sizeof(edgeL)){
+                                if(edgeID < 3*3*n){
+                                    edgeL[ edgeID ] = edgeL[gid];
+                                    edgeR[ edgeID ] = edgeJ;
+                                    validE[ edgeID ] = 1;
 
-                                edgeL[ gid*2+3 ] = edgeL[gid];
-                                edgeR[ gid*2+3 ] = edgeJ;
-                                validE[ gid*2+3 ] = 1;
+                                    edgeID = edgeID + 1;
 
-                                edgeL[ gid*2+4 ] = edgeR[gid];
-                                edgeR[ gid*2+4 ] = edgeJ;
-                                validE[ gid*2+4 ] = 1;
-                                } else{
-                                    if(gid*2+3 < 3*n){
-                                        edgeL[ gid*2+3 ] = edgeL[gid];
-                                        edgeR[ gid*2+3 ] = edgeJ;
-                                        validE[ gid*2+3 ] = 1;
+                                    edgeL[ edgeID ] = edgeR[gid];
+                                    edgeR[ edgeID ] = edgeJ;
+                                    validE[ edgeID ] = 1;
+                                    } else {   // ak sa vycerpaju zdroje (pole urcene rpe nove hrany) model nemusi byt cely
+                                    if(edgeID-1 < 3*3*n){
+                                        edgeID = edgeID - 1;
+                                        edgeL[ edgeID ] = edgeL[gid];
+                                        edgeR[ edgeID ] = edgeJ;
+                                        validE[ edgeID ] = 1;
                                   }
                                }
-//---------
-                                validP[edgeJ] = -1;
+////---------
+//                            if(gid*2+4 < 2*3*n){
+//
+//                                edgeL[ gid*2+3 ] = edgeL[gid];
+//                                edgeR[ gid*2+3 ] = edgeJ;
+//                                validE[ gid*2+3 ] = 1;
+//
+//                                edgeL[ gid*2+4 ] = edgeR[gid];
+//                                edgeR[ gid*2+4 ] = edgeJ;
+//                                validE[ gid*2+4 ] = 1;
+//                                } else{
+//                                    if(gid*2+3 < 2*3*n){
+//                                        edgeL[ gid*2+3 ] = edgeL[gid];
+//                                        edgeR[ gid*2+3 ] = edgeJ;
+//                                        validE[ gid*2+3 ] = 1;
+//                                  }
+//                               }
+////---------
+                                
 
                                 //fACE
-                                int waiting = 1;
+                                waiting = 1;
                                 while (waiting) {
 //                                    if (!atomic_xchg(id[2], 1)) 
                                     if (!atomic_xchg(idFace_lock, 1)) {
@@ -333,39 +373,40 @@ edgeR[gid]=-6;
                                 faceV3[ faceID ] = edgeR[gid];
                                 
                             } else {
-                                if (!edgeExist(edgeL[gid], edgeJ, edgeL, edgeR) ) {
+//                                if (!edgeExist(edgeL[gid], edgeJ, edgeL, edgeR) ) {
+                                if( !aaa ){
+                                    validP[edgeJ] = -1;
                                         //make edge
-////                                        int waiting = 1;
-////                                        while (waiting) {
-////                                            if (!atomic_xchg(idEdge_lock, 1)) {
-////                                                // critical section
-////                                                edgeID = id[0];
-////                                                id[0] = id[0] + 1;
-////                                                if(validE[edgeID]==1){
-////                                                    edgeID++;
-////                                                    id[0]++;
-////                                                }
-////                                                atomic_xchg(idEdge_lock, 0);
-////                                                waiting = 0;
-////                                            }
-////                                        }
-////                                        if(edgeID < sizeof(edgeL)){
-////                                            edgeL[ edgeID ] = edgeL[gid];
-////                                            edgeR[ edgeID ] = edgeJ;
-////                                            validE[ edgeID ] = 1;
-////                                            }
-//---------
-                            if(gid*2+3 < 3*n){
-
-                                edgeL[ gid*2+3 ] = edgeL[gid];
-                                edgeR[ gid*2+3 ] = edgeJ;
-                                validE[ gid*2+3 ] = 1;
-
-                                } 
-//---------
-                                validP[edgeJ] = -1;
+                                        int waiting = 1;                               
+                                        while (waiting) {
+                                            if (!atomic_xchg(idEdge_lock, 1)) {
+                                                // critical section
+                                                edgeID = id[0];
+                                                id[0] = id[0] + 1;
+                                                if(validE[edgeID]==1){
+                                                    edgeID++;
+                                                    id[0]++;
+                                                }
+                                                atomic_xchg(idEdge_lock, 0);
+                                                waiting = 0;
+                                            }
+                                        }
+                                        if(edgeID < 3*3*n){
+                                            edgeL[ edgeID ] = edgeL[gid];
+                                            edgeR[ edgeID ] = edgeJ;
+                                            validE[ edgeID ] = 1;
+                                        }
+////---------
+//                            if(gid*2+3 < 2*3*n){
+//
+//                                edgeL[ gid*2+3 ] = edgeL[gid];
+//                                edgeR[ gid*2+3 ] = edgeJ;
+//                                validE[ gid*2+3 ] = 1;
+//
+//                                } 
+////---------
                                 //make face
-                                int waiting = 1;
+                                waiting = 1;
                                 while (waiting) {
                                     if (!atomic_xchg(idFace_lock, 1)) {
                                         // critical section
@@ -380,37 +421,38 @@ edgeR[gid]=-6;
                                 faceV3[ faceID ] = edgeR[gid];
                                         
                                 } else {
-                                    if (!edgeExist(edgeR[gid], edgeJ, edgeL, edgeR) ) {
+//                                    if (!edgeExist(edgeR[gid], edgeJ, edgeL, edgeR) ) {
+                                    if( !bbb ){
+                                        validP[edgeJ] = -1;
                                         //make edge
-//                                        int waiting = 1;
-//                                        while (waiting) {
-//                                            if (!atomic_xchg(idEdge_lock, 1)) {
-//                                                // critical section
-//                                                edgeID = id[0];
-//                                                id[0] = id[0] + 1;
-//                                                if(validE[edgeID]==1){
-//                                                    edgeID++;
-//                                                    id[0]++;
-//                                                }
-//                                                atomic_xchg(idEdge_lock, 0);
-//                                                waiting = 0;
-//                                            }
-//                                        }
-//                                        if(edgeID < sizeof(edgeL)){
-//                                            edgeL[ edgeID ] = edgeR[gid];
-//                                            edgeR[ edgeID ] = edgeJ;
-//                                            validE[ edgeID ] = 1;
-//                                            }
-//---------
-                            if(gid*2+3 < 3*n){
-                                edgeL[ gid*2+3 ] = edgeR[gid];
-                                edgeR[ gid*2+3 ] = edgeJ;
-                                validE[ gid*2+3 ] = 1;
-                                } 
-//---------
-                            validP[edgeJ] = -1;
+                                        int waiting = 1;
+                                        while (waiting) {
+                                            if (!atomic_xchg(idEdge_lock, 1)) {
+                                                // critical section
+                                                edgeID = id[0];
+                                                id[0] = id[0] + 1;
+                                                if(validE[edgeID]==1){
+                                                    edgeID++;
+                                                    id[0]++;
+                                                }
+                                                atomic_xchg(idEdge_lock, 0);
+                                                waiting = 0;
+                                            }
+                                        }
+                                        if(edgeID < 3*3*n){
+                                            edgeL[ edgeID ] = edgeR[gid];
+                                            edgeR[ edgeID ] = edgeJ;
+                                            validE[ edgeID ] = 1;
+                                            }
+////---------
+////                            if(gid*2+3 < 2*3*n){
+////                                edgeL[ gid*2+3 ] = edgeR[gid];
+////                                edgeR[ gid*2+3 ] = edgeJ;
+////                                validE[ gid*2+3 ] = 1;
+////                                } 
+////---------
 ////                                        //make face
-                                    int waiting = 1;
+                                    waiting = 1;
                                     while (waiting) {
                                         if (!atomic_xchg(idFace_lock, 1)) {
                                             // critical section
@@ -425,21 +467,21 @@ edgeR[gid]=-6;
                                     faceV3[ faceID ] = edgeR[gid];
                                     }
                                 }
+                                validP[edgeJ] = -1;
 //                                    //make face
-                                    int waiting = 1;
-                                    while (waiting) {
-                                        if (!atomic_xchg(idFace_lock, 1)) {
-                                            // critical section
-                                            faceID = id[1];
-                                            id[1] = id[1] + 1;
-                                            atomic_xchg(idFace_lock, 0);
-                                            waiting = 0;
-                                        }
+                                int waiting = 1;
+                                while (waiting) {
+                                    if (!atomic_xchg(idFace_lock, 1)) {
+                                        // critical section
+                                        faceID = id[1];
+                                        id[1] = id[1] + 1;
+                                        atomic_xchg(idFace_lock, 0);
+                                        waiting = 0;
                                     }
-                                    faceV1[ faceID ] = edgeL[gid];
-                                    faceV2[ faceID ] = edgeJ;
-                                    faceV3[ faceID ] = edgeR[gid];
-                                    validP[edgeJ] = -1;
+                                }
+                                faceV1[ faceID ] = edgeL[gid];
+                                faceV2[ faceID ] = edgeJ;
+                                faceV3[ faceID ] = edgeR[gid];
                             }
                         }
             }
@@ -456,12 +498,12 @@ edgeR[gid]=-6;
                     if (edgeL[gid] == j || edgeR[gid] == j) {
                     } else {
                         isInside = -1;
-//                        xxx = circleHasPoint1((float3) (x[edgeL[gid]],y[edgeL[gid]],z[edgeL[gid]]), 
-//                                              (float3) (x[edgeR[gid]],y[edgeR[gid]],z[edgeR[gid]]),
-//                                              (float3) (x[j], y[j], z[j]) );
-                        xxx = circleHasPoint(x[edgeL[gid]],y[edgeL[gid]],z[edgeL[gid]], 
-                                             x[edgeR[gid]], y[edgeR[gid]],z[edgeR[gid]],
-                                             x[j], y[j], z[j]);
+                        xxx = circleHasPoint1((float3) (x[edgeL[gid]],y[edgeL[gid]],z[edgeL[gid]]), 
+                                              (float3) (x[edgeR[gid]],y[edgeR[gid]],z[edgeR[gid]]),
+                                              (float3) (x[j], y[j], z[j]) );
+//                        xxx = circleHasPoint(x[edgeL[gid]],y[edgeL[gid]],z[edgeL[gid]], 
+//                                             x[edgeR[gid]], y[edgeR[gid]],z[edgeR[gid]],
+//                                             x[j], y[j], z[j]);
                         for (int i = 0; i < n; i++) {
                             if (edgeL[gid] == i || j == i || edgeR[gid] == i ) {
                                 //nothing
@@ -471,7 +513,7 @@ edgeR[gid]=-6;
                             }
                           }
                         }
-min[gid] = xxx.w;
+//min[gid] = xxx.w;
 //                        if ( xxx.w != 0 && isInside != 1 ) {
                         if ( xxx.w != 0 && isInside <= 0 ) {
                             edgeJ = j;
@@ -503,64 +545,62 @@ min[gid] = xxx.w;
 //if (min[edgeJ]*5 > distance( (float3) (x[edgeL[gid]],y[edgeL[gid]],z[edgeL[gid]]) , (float3)(x[edgeJ], y[edgeJ], z[edgeJ])) 
 //     || min[edgeJ]*5 > distance( (float3) (x[edgeR[gid]],y[edgeR[gid]],z[edgeR[gid]]) , (float3)(x[edgeJ], y[edgeJ], z[edgeJ]))   )
                         {
-//                            //make edges
-//                            int waiting = 1;
-//                            while (waiting) {
-////                                    if (!atomic_xchg(id[0], 1)) 
-//                                if (!atomic_xchg(idEdge_lock, 1)) {
-//                                    // critical section
-//                                    edgeID = id[0];
-//                                    id[0] = id[0] + 2;                                    
-//                                    if(validE[edgeID]==1){
-//                                        edgeID++;
-//                                        id[0]++;
-//                                    }
-//                                    atomic_xchg(idEdge_lock, 0);
-//                                    waiting = 0;
-//                                }
-//                            }
-//                            if(edgeID < sizeof(edgeL)-1){
-//                                edgeL[ edgeID ] = edgeL[gid];
-//                                edgeR[ edgeID ] = edgeJ;
-//                                validE[ edgeID ] = 1;
-//
-//                                edgeID = edgeID + 1;
-//
-//                                edgeL[ edgeID ] = edgeR[gid];
-//                                edgeR[ edgeID ] = edgeJ;
-//                                validE[ edgeID ] = 1;
-//                                } else{
-//                                    if(edgeID < sizeof(edgeL)){
-//                                        edgeL[ edgeID ] = edgeL[gid];
-//                                        edgeR[ edgeID ] = edgeJ;
-//                                        validE[ edgeID ] = 1;
-//                                  }
-//                               }
-                            
                             validP[edgeJ] = -1;
-//---------
-                            if(gid*2+4 < 3*n){
-
-                                edgeL[ gid*2+3 ] = edgeL[gid];
-                                edgeR[ gid*2+3 ] = edgeJ;
-                                validE[ gid*2+3 ] = 1;
-
-                                edgeL[ gid*2+4 ] = edgeR[gid];
-                                edgeR[ gid*2+4 ] = edgeJ;
-                                validE[ gid*2+4 ] = 1;
-                                } else{
-                                    if(gid*2+3 < 3*n){
-                                        edgeL[ gid*2+3 ] = edgeL[gid];
-                                        edgeR[ gid*2+3 ] = edgeJ;
-                                        validE[ gid*2+3 ] = 1;
-                                  }
-                               }
-//---------
-
-                            //make face
+//                            //make edges
                             int waiting = 1;
                             while (waiting) {
-//                                    if (!atomic_xchg(id[2], 1)) 
+                                if (!atomic_xchg(idEdge_lock, 1)) {
+                                    // critical section
+                                    edgeID = id[0];
+                                    id[0] = id[0] + 2;                                    
+                                    if(validE[edgeID]==1){
+                                        edgeID++;
+                                        id[0]++;
+                                    }
+                                    atomic_xchg(idEdge_lock, 0);
+                                    waiting = 0;
+                                }
+                            }
+                            if(edgeID < 3*3*n){
+                                edgeL[ edgeID ] = edgeL[gid];
+                                edgeR[ edgeID ] = edgeJ;
+                                validE[ edgeID ] = 1;
+
+                                edgeID = edgeID + 1;
+
+                                edgeL[ edgeID ] = edgeR[gid];
+                                edgeR[ edgeID ] = edgeJ;
+                                validE[ edgeID ] = 1;
+                                } else{
+                                    if(edgeID < 3*3*n){
+                                        edgeL[ edgeID ] = edgeL[gid];
+                                        edgeR[ edgeID ] = edgeJ;
+                                        validE[ edgeID ] = 1;
+                                  }
+                               }
+                            
+////---------
+//                            if(gid*2+4 < 2*3*n){
+//
+//                                edgeL[ gid*2+3 ] = edgeL[gid];
+//                                edgeR[ gid*2+3 ] = edgeJ;
+//                                validE[ gid*2+3 ] = 1;
+//
+//                                edgeL[ gid*2+4 ] = edgeR[gid];
+//                                edgeR[ gid*2+4 ] = edgeJ;
+//                                validE[ gid*2+4 ] = 1;
+//                                } else{
+//                                    if(gid*2+3 < 2*3*n){
+//                                        edgeL[ gid*2+3 ] = edgeL[gid];
+//                                        edgeR[ gid*2+3 ] = edgeJ;
+//                                        validE[ gid*2+3 ] = 1;
+//                                  }
+//                               }
+////---------
+
+                            //make face
+                            waiting = 1;
+                            while (waiting) {
                                 if (!atomic_xchg(idFace_lock, 1)) {
                                     // critical section
                                     faceID = id[1];
@@ -575,11 +615,8 @@ min[gid] = xxx.w;
 
                         }
                 }
-//            }else{
-//                return;
-//            }
-
 }
+//}
 
 
        

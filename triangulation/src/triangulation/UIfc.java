@@ -236,7 +236,7 @@ class UIfc extends javax.swing.JDialog {
 
         jLabel1.setText("počet bodov mračna");
 
-        jRadioButton2.setText("Vygenerovať náhodne body");
+        jRadioButton2.setText("Vygenerovať náhodne body   //todo: generovanie nahod v 2D !!!");
         jRadioButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jRadioButton2ActionPerformed(evt);
@@ -250,7 +250,7 @@ class UIfc extends javax.swing.JDialog {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jRadioButton2)
-                .addContainerGap(277, Short.MAX_VALUE))
+                .addContainerGap(99, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap(189, Short.MAX_VALUE)
                 .addComponent(jLabel1)

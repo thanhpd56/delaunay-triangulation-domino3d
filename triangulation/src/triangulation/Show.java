@@ -65,7 +65,9 @@ public class Show extends javax.swing.JFrame {
                     g.drawLine((int) edges.get(i).l.getX() * scale + offset, (int) edges.get(i).l.getY() * scale + offset, (int) edges.get(i).r.getX() * scale + offset, (int) edges.get(i).r.getY() * scale + offset);
                 }
                 
-//                if(edges.get(i).getMidpoint()!=null)g.setColor(Color.GREEN);g.fillOval((int)edges.get(i).getMidpoint().getX() * scale + offset, (int)edges.get(i).getMidpoint().getY() * scale + offset, 5, 5);g.setColor(Color.BLACK);g.drawString(""+i,(int)edges.get(i).getMidpoint().getX() * scale + offset, (int)edges.get(i).getMidpoint().getY() * scale + offset);
+//                if(edges.get(i).getMidpoint()!=null)g.setColor(Color.GREEN);g.fillOval((int)edges.get(i).getMidpoint().getX() * scale + offset, (int)edges.get(i).getMidpoint().getY() * scale + offset, 5, 5);
+                g.setColor(Color.BLACK);
+                g.drawString(""+i,(int)(edges.get(i).l.getX()+edges.get(i).r.getX())/2 * scale + offset, (int)(edges.get(i).l.getY()+edges.get(i).r.getY())/2 * scale + offset);
             } 
         } catch (Exception e) {
         }

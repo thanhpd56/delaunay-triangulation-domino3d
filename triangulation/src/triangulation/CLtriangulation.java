@@ -45,10 +45,10 @@ class CLtriangulation {
             validPoint[i] = 1;
         }
         
-        int   edgeL[]  = new int[3*n]; //podla The Euler-Poincaré Formula 
-        int   edgeR[]  = new int[3*n]; //podla The Euler-Poincaré Formula 
-        int   validEdge[]  = new int[3*n]; //podla The Euler-Poincaré Formula 
-        for (int i = 0; i < 3*n; i++) {
+        int   edgeL[]  = new int[3*3*n]; //podla The Euler-Poincaré Formula 
+        int   edgeR[]  = new int[3*3*n]; //podla The Euler-Poincaré Formula 
+        int   validEdge[]  = new int[3*3*n]; //podla The Euler-Poincaré Formula 
+        for (int i = 0; i < 3*3*n; i++) {
             validEdge[i] = 0;
             edgeL[i] = -1;
             edgeR[i] = -1;
@@ -113,7 +113,7 @@ class CLtriangulation {
         // The platform, device type and device number
         // that will be used
         final int platformIndex = 0;
-        final long deviceType = CL_DEVICE_TYPE_DEFAULT;
+        final long deviceType = CL_DEVICE_TYPE_ALL;
         final int deviceIndex = 0;
 
         // Enable exceptions and subsequently omit error checks in this sample
@@ -154,14 +154,14 @@ class CLtriangulation {
 
         // Allocate the memory objects for the input- and output data
         cl_mem memObjects[] = new cl_mem[14];
-        memObjects[7] = clCreateBuffer(context,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, srcX, null);
+        memObjects[0] = clCreateBuffer(context,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, srcX, null);
         memObjects[1] = clCreateBuffer(context,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, srcY, null);
         memObjects[2] = clCreateBuffer(context,CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, srcZ, null);
         memObjects[3] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * n, min, null);
         memObjects[4] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_int * n, valP, null);
-        memObjects[5] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_float * 3*n, eL, null);
-        memObjects[6] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_float * 3*n, eR, null);
-        memObjects[0] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_float * 3*n, valE, null);
+        memObjects[5] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_float * 3*3*n, eL, null);
+        memObjects[6] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_float * 3*3*n, eR, null);
+        memObjects[7] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_float * 3*3*n, valE, null);
         memObjects[8] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 4*n, null, null);
         memObjects[9] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 4*n, null, null);
         memObjects[10] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 4*n, null, null);
@@ -204,8 +204,10 @@ class CLtriangulation {
         
         
         // Set the work-item dimensions
-        long global_work_size[] = new long[]{3*n};
-        long local_work_size[] = new long[]{1}; //1 grup sa zrobi, alebo null-spravi kolko chce
+        long global_work_size[] = new long[]{3*3*n};
+//        long global_work_size[] = new long[]{1};
+        long local_work_size[] = null; //1 grup sa zrobi, alebo null-spravi kolko on chce
+//        long local_work_size[] = new long[]{1}; //1 grup sa zrobi, alebo null-spravi kolko chce
 System.out.println("executing 3 kernel");
         // Execute the kernel
         clEnqueueNDRangeKernel(commandQueue, kernel, 1, null,
@@ -213,15 +215,16 @@ System.out.println("executing 3 kernel");
 System.out.println("stop 3 kernel");
   clFinish(commandQueue);
 System.out.println("clFinish 3 kernel");
+
         // Read the output data
         int clEnqueueReadBuffer = clEnqueueReadBuffer(commandQueue, memObjects[5], CL_TRUE, 0,
-                                      3*n * Sizeof.cl_float, eL, 0, null, null);
+                                      3*3*n * Sizeof.cl_float, eL, 0, null, null);
 System.out.println("1read 3 kernel +err:" + clEnqueueReadBuffer);
         clEnqueueReadBuffer(commandQueue, memObjects[6], CL_TRUE, 0,
-            3*n * Sizeof.cl_float, eR, 0, null, null);
+            3*3*n * Sizeof.cl_float, eR, 0, null, null);
         
-        clEnqueueReadBuffer(commandQueue, memObjects[0], CL_TRUE, 0,
-            3*n * Sizeof.cl_float, valE, 0, null, null);
+        clEnqueueReadBuffer(commandQueue, memObjects[7], CL_TRUE, 0,
+            3*3*n * Sizeof.cl_float, valE, 0, null, null);
         
         clEnqueueReadBuffer(commandQueue, memObjects[8], CL_TRUE, 0,
             4*n * Sizeof.cl_float, fac1, 0, null, null);
@@ -235,7 +238,6 @@ System.out.println("1read 3 kernel +err:" + clEnqueueReadBuffer);
         //read min
         clEnqueueReadBuffer(commandQueue, memObjects[3], CL_TRUE, 0,
             n * Sizeof.cl_float, min, 0, null, null);
-        
         
         
         
@@ -259,31 +261,40 @@ System.out.println("1read 3 kernel +err:" + clEnqueueReadBuffer);
         clReleaseCommandQueue(commandQueue);
         clReleaseContext(context);
         
-        for (int i = 0; i < 3*n; i++) {
-                System.out.println(">>"+edgeL[i]+" "+edgeR[i]);
+        for (int i = 0; i < 3*3*n; i++) {
+System.out.println(">>"+edgeL[i]+" "+edgeR[i] +" "+ validEdge[i]);
         }
-        for (int i = 0; i < n; i++) {
-                System.out.println("XX"+metrika[i]);
-        }
+//        for (int i = 0; i < n; i++) {
+//                System.out.println("XX"+metrika[i]);
+//        }
         
 
         // the result
-        for (int i = 0; i < 3*n; i++) {
+        for (int i = 0; i < 3*3*n; i++) {
 //            if (validEdge[i] == 1) {
             if (edgeL[i] >= 0 && edgeR[i] >= 0) {
-                edges.add(new Edge(point_cloud.get(edgeL[i]), point_cloud.get(edgeR[i])));
+                edges.add(new Edge(
+ /*p_c.get VELKE cislo, tu je chyba niekedy, neviem zatial preco*/                       
+                        point_cloud.get(
+                        edgeL[
+                        i]), 
+                        point_cloud.get(
+                        edgeR[
+                        i])));
             }
         }
 
         System.out.println(">>"+edges.toString());
         
         for (int i = 0; i < 4*n; i++) {
+System.out.println("--"+faceV1[i]+" "+faceV2[i] +" "+ faceV3[i]);
+            
             if (faceV1[i] != -1) {
                 face.add(new Face(faceV1[i], faceV2[i], faceV3[i]));
             }
         }
         
-        System.out.println("##"+face.toString());
+System.out.println("##"+face.toString());
 
 //        System.out.println("b>>>>" + point_cloud.size() + "X"+j + "<<<" + point_cloud.toString());
         //end

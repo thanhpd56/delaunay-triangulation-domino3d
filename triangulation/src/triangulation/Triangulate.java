@@ -169,6 +169,8 @@ public class Triangulate {
             for (int i = 0; i < amount; i++) {
 //                point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100)));
                 point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100), 1));
+//todo: generovanie nahod v 2D !!!
+                
                 
 //        point_cloud1.add( new Point(0,10,10,1));
 //        point_cloud1.add( new Point(1,10,20,1));
@@ -812,10 +814,10 @@ System.out.println("NO sort"+point_cloud1.toString());
     private boolean edgeExist(Point x, Point y) {
         for (int i = 0; i < edges1.size(); i++) {
             if ( 
-                    ((edges1.get(i).l.getX() == x.getX()) &&  (edges1.get(i).l.getY() == x.getY()) &&
-                    (edges1.get(i).r.getX() == y.getX()) &&  (edges1.get(i).r.getY() == y.getY())) ||
-                    ((edges1.get(i).r.getX() == x.getX()) &&  (edges1.get(i).r.getY() == x.getY()) &&
-                    (edges1.get(i).l.getX() == y.getX()) &&  (edges1.get(i).l.getY() == y.getY()))
+                    ((edges1.get(i).l.getX() == x.getX()) &&  (edges1.get(i).l.getY() == x.getY()) && (edges1.get(i).l.getZ() == x.getZ()) &&
+                    (edges1.get(i).r.getX() == y.getX())  &&  (edges1.get(i).r.getY() == y.getY()) && (edges1.get(i).r.getZ() == y.getZ()) ) ||
+                    ((edges1.get(i).r.getX() == x.getX()) &&  (edges1.get(i).r.getY() == x.getY()) && (edges1.get(i).r.getZ() == x.getZ()) &&
+                    (edges1.get(i).l.getX() == y.getX())  &&  (edges1.get(i).l.getY() == y.getY()) && (edges1.get(i).l.getZ() == y.getZ()))
                     ) {
                 return true;
             }
