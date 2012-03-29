@@ -46,7 +46,8 @@ public class Triangulate {
     private int kon2 = 5; //konstanta 2 pri maximalnej vzdialenosti
     private boolean fromFile;
     private String file;
-    private int firstTriangle[] = new int[3];
+//    private int firstTriangle[] = new int[3];
+    private int firstTriangle[] = new int[9];
     
     /**
      * @param args the command line arguments
@@ -250,7 +251,7 @@ public class Triangulate {
                 }
             }
         }
-        System.out.println("second point. distance: " + dist_last + ", point: " + point_cloud1.get(point2).toString());
+        System.out.println("second point " + point_cloud1.get(point2).toString());
         makeEdge(0, point_cloud1.get(startPointID), point_cloud1.get(point2));
         point_cloud1.get(point2).setUsed();
         ui.jProgressBar1.setValue(100*loading++/amount);
@@ -271,7 +272,7 @@ public class Triangulate {
                 }
             }
         }
-        System.out.println("third point. distance from edge: " + dist_last + ", point: " + point_cloud1.get(point3).toString());
+        System.out.println("third point " + point_cloud1.get(point3).toString());
         
         //Alg na hladanie vhodnejsieho kandidata!
         int xxx = circleHasPoint1(point_cloud1.get(startPointID), point_cloud1.get(point2), point_cloud1.get(point3));
@@ -316,6 +317,210 @@ public class Triangulate {
         firstTriangle[2] = point3;
         point_cloud1.get(point3).setUsed();
         ui.jProgressBar1.setValue(100*loading++/amount);
+        
+//------dalsie dva trrojuholniky-----------------------------
+//-----------------------------------------------------------
+//-----------------------------------------------------------
+        
+        
+        ui.jProgressBar1.setValue(100*loading++/amount);
+        dist = 0.0;
+        dist_last = Double.MAX_VALUE;
+        point2 = 0;
+        point3 = 0;
+        
+//        startPointID = getRandomStartPoint(amount);
+        startPointID = (int)(amount/2);
+        while( firstTriangle[0] == startPointID ||
+            firstTriangle[1] == startPointID ||
+            firstTriangle[2] == startPointID  ){
+            startPointID = getRandomStartPoint(amount);
+        }
+        point_cloud1.get(startPointID).setUsed();
+        System.out.println("x first point " + point_cloud1.get(startPointID).toString());
+        
+        
+//----hladanie 2. bodu a 1. hrany---------
+        for (int i = 0; i < point_cloud1.size(); i++) { //porovname vsetky vzdialenosti bodov, prveho vybrateho so vsetkymi, tak najdeme 2. bod trojuholnika
+            if (!(point_cloud1.get(i).isUsed())) {     //vsetky okrem prveho vybrateho //je pouzity? ak NIE pokracuj alg, Ak ANO
+                dist = distance(point_cloud1.get(startPointID), point_cloud1.get(i));
+                if (0 >= dist.compareTo(dist_last)) {
+                    dist_last = dist;
+                    point2 = i;
+                }
+            }
+        }
+        System.out.println("x second point " + point_cloud1.get(point2).toString());
+        makeEdge(0, point_cloud1.get(startPointID), point_cloud1.get(point2));
+        point_cloud1.get(point2).setUsed();
+        ui.jProgressBar1.setValue(100*loading++/amount);
+        //edges[0].setUsed();
+        
+//-----hladanie 3. bodu a 2.+3. hrany------------------------------------
+        dist_last = Double.MAX_VALUE;
+
+        for (int i = 0; i < point_cloud1.size(); i++) {
+            if (!(point_cloud1.get(i).isUsed())) {     //vsetky okrem prvyh 2 vybratehyh
+                //porovname vsetky vzdialenosti bodov od 2. bodu, MOZME hladat aj od STREDU KRUZNICE (ak chceme)!!!
+                // MOZME zobrat hned PRVY nepouzity z hora lebo ak su optimalne sortovane netreba hladat najblizsi!!!
+//                dist = distanceFromEdge(edges[0], point_cloud[i]);
+                dist = distanceFromEdge(edges1.get(0), point_cloud1.get(i));
+                if (0 >= dist.compareTo(dist_last)) {  
+                    dist_last = dist;
+                    point3 = i;
+                }
+            }
+        }
+        System.out.println("x third point " + point_cloud1.get(point3).toString());
+        
+        //Alg na hladanie vhodnejsieho kandidata!
+        xxx = circleHasPoint1(point_cloud1.get(startPointID), point_cloud1.get(point2), point_cloud1.get(point3));
+        if (xxx != -1) {
+            int yyy = -1;
+            ArrayList invalid = new ArrayList(); // declares an array of integers        
+            
+            while (xxx != -1) {
+                if (xxx == -2) xxx = getRandomStartPoint(amount);
+                if (yyy == -1) {
+                    invalid.add(point3); //nastane len raz.
+                } else {
+                    invalid.add(yyy);   
+                }
+                if (invalid.contains(xxx) ) {
+                    point3 = yyy;
+                    System.out.println("break!");
+                    break;
+                } else {
+                    yyy = xxx;
+                    xxx = circleHasPoint1(point_cloud1.get(startPointID), point_cloud1.get(point2), point_cloud1.get(xxx));
+                    System.out.println("x navstivil som " + yyy + ", novy je " + xxx);
+                }
+            }
+
+            
+            if (xxx == -1 ) {   // ak sme nasli nieco vhodnejsie tak to dame do POINT3
+                point3 = yyy;
+                System.out.println("x oprava");
+            }
+        }
+        
+        System.out.println("x ----------koniec prveho 3uholnika---------------");
+        
+        
+        makeEdge(1, point_cloud1.get(startPointID), point_cloud1.get(point3));
+        makeEdge(2, point_cloud1.get(point2), point_cloud1.get(point3));
+//        face.add(new Face(point_cloud1.get(startPointID), point_cloud1.get(point2), point_cloud1.get(point3)));
+        face.add(new Face(startPointID, point2, point3));
+        firstTriangle[3] = startPointID;
+        firstTriangle[4] = point2;
+        firstTriangle[5] = point3;
+        point_cloud1.get(point3).setUsed();
+        ui.jProgressBar1.setValue(100*loading++/amount);
+
+        
+//------ este dalsie dva trrojuholniky-----------------------------
+//-----------------------------------------------------------
+//-----------------------------------------------------------
+        
+        
+        ui.jProgressBar1.setValue(100*loading++/amount);
+        dist = 0.0;
+        dist_last = Double.MAX_VALUE;
+        point2 = 0;
+        point3 = 0;
+        
+//        startPointID = getRandomStartPoint(amount);
+        startPointID = amount-1;
+        while( firstTriangle[0] == startPointID ||
+            firstTriangle[1] == startPointID ||
+            firstTriangle[2] == startPointID ||
+            firstTriangle[3] == startPointID ||
+            firstTriangle[4] == startPointID ||
+            firstTriangle[5] == startPointID ){
+            startPointID = getRandomStartPoint(amount);
+        }
+        point_cloud1.get(startPointID).setUsed();
+        System.out.println("y first point " + point_cloud1.get(startPointID).toString());
+        
+        
+//----hladanie 2. bodu a 1. hrany---------
+        for (int i = 0; i < point_cloud1.size(); i++) { //porovname vsetky vzdialenosti bodov, prveho vybrateho so vsetkymi, tak najdeme 2. bod trojuholnika
+            if (!(point_cloud1.get(i).isUsed())) {     //vsetky okrem prveho vybrateho //je pouzity? ak NIE pokracuj alg, Ak ANO
+                dist = distance(point_cloud1.get(startPointID), point_cloud1.get(i));
+                if (0 >= dist.compareTo(dist_last)) {
+                    dist_last = dist;
+                    point2 = i;
+                }
+            }
+        }
+        System.out.println("y second point " + point_cloud1.get(point2).toString());
+        makeEdge(0, point_cloud1.get(startPointID), point_cloud1.get(point2));
+        point_cloud1.get(point2).setUsed();
+        ui.jProgressBar1.setValue(100*loading++/amount);
+        //edges[0].setUsed();
+        
+//-----hladanie 3. bodu a 2.+3. hrany------------------------------------
+        dist_last = Double.MAX_VALUE;
+
+        for (int i = 0; i < point_cloud1.size(); i++) {
+            if (!(point_cloud1.get(i).isUsed())) {     //vsetky okrem prvyh 2 vybratehyh
+                //porovname vsetky vzdialenosti bodov od 2. bodu, MOZME hladat aj od STREDU KRUZNICE (ak chceme)!!!
+                // MOZME zobrat hned PRVY nepouzity z hora lebo ak su optimalne sortovane netreba hladat najblizsi!!!
+//                dist = distanceFromEdge(edges[0], point_cloud[i]);
+                dist = distanceFromEdge(edges1.get(0), point_cloud1.get(i));
+                if (0 >= dist.compareTo(dist_last)) {  
+                    dist_last = dist;
+                    point3 = i;
+                }
+            }
+        }
+        System.out.println("y third point " + point_cloud1.get(point3).toString());
+        
+        //Alg na hladanie vhodnejsieho kandidata!
+        xxx = circleHasPoint1(point_cloud1.get(startPointID), point_cloud1.get(point2), point_cloud1.get(point3));
+        if (xxx != -1) {
+            int yyy = -1;
+            ArrayList invalid = new ArrayList(); // declares an array of integers        
+            
+            while (xxx != -1) {
+                if (xxx == -2) xxx = getRandomStartPoint(amount);
+                if (yyy == -1) {
+                    invalid.add(point3); //nastane len raz.
+                } else {
+                    invalid.add(yyy);   
+                }
+                if (invalid.contains(xxx) ) {
+                    point3 = yyy;
+                    System.out.println("break!");
+                    break;
+                } else {
+                    yyy = xxx;
+                    xxx = circleHasPoint1(point_cloud1.get(startPointID), point_cloud1.get(point2), point_cloud1.get(xxx));
+                    System.out.println("y navstivil som " + yyy + ", novy je " + xxx);
+                }
+            }
+
+            
+            if (xxx == -1 ) {   // ak sme nasli nieco vhodnejsie tak to dame do POINT3
+                point3 = yyy;
+                System.out.println("y oprava");
+            }
+        }
+        
+        System.out.println("y ----------koniec prveho 3uholnika---------------");
+        
+        
+        makeEdge(1, point_cloud1.get(startPointID), point_cloud1.get(point3));
+        makeEdge(2, point_cloud1.get(point2), point_cloud1.get(point3));
+//        face.add(new Face(point_cloud1.get(startPointID), point_cloud1.get(point2), point_cloud1.get(point3)));
+        face.add(new Face(startPointID, point2, point3));
+        firstTriangle[6] = startPointID;
+        firstTriangle[7] = point2;
+        firstTriangle[8] = point3;
+        point_cloud1.get(point3).setUsed();
+        ui.jProgressBar1.setValue(100*loading++/amount);
+        
+        
     }
 
 

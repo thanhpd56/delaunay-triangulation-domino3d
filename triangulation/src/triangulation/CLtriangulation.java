@@ -54,10 +54,10 @@ class CLtriangulation {
             edgeR[i] = -1;
         }
 //??? potrebuje xyz/alebo stale pocitat stred  -->>  int   edgeMid[]= new int[3*n]; //podla The Euler-Poincaré Formula 
-        int   faceV1[] = new int[4*n]; //Vert:Face:Edge 1:2:3 -> The Euler-Poincaré Formula 
-        int   faceV2[] = new int[4*n]; //Vert:Face:Edge 1:2:3 -> The Euler-Poincaré Formula 
-        int   faceV3[] = new int[4*n]; //Vert:Face:Edge 1:2:3 -> The Euler-Poincaré Formula 
-        for (int i = 0; i < 4*n; i++) {
+        int   faceV1[] = new int[7*n]; //Vert:Face:Edge 1:2:3 -> The Euler-Poincaré Formula 
+        int   faceV2[] = new int[7*n]; //Vert:Face:Edge 1:2:3 -> The Euler-Poincaré Formula 
+        int   faceV3[] = new int[7*n]; //Vert:Face:Edge 1:2:3 -> The Euler-Poincaré Formula 
+        for (int i = 0; i < 7*n; i++) {
             faceV1[i] = -1;
             faceV2[i] = -1;
             faceV3[i] = -1;
@@ -67,19 +67,44 @@ class CLtriangulation {
         validPoint[firstTriangle[0]] = -1;
         validPoint[firstTriangle[1]] = -1; //set used/invalid
         validPoint[firstTriangle[2]] = -1;
-        //makeEdge 0
         
         edgeL[0] = firstTriangle[0];
         edgeR[0] = firstTriangle[1];
         validEdge[0] = 1;
-        //makeEdge 1
         edgeL[1] = firstTriangle[0];
         edgeR[1] = firstTriangle[2];
         validEdge[1] = 1;
-        //makeEdge 2
         edgeL[2] = firstTriangle[1];
         edgeR[2] = firstTriangle[2];
         validEdge[2] = 1;
+        //musim zapisat existujuci 2. 3uh z danych 3 bodov do polí
+        validPoint[firstTriangle[3]] = -1;
+        validPoint[firstTriangle[4]] = -1; //set used/invalid
+        validPoint[firstTriangle[5]] = -1;
+        
+        edgeL[3] = firstTriangle[3];
+        edgeR[3] = firstTriangle[4];
+        validEdge[3] = 1;
+        edgeL[4] = firstTriangle[3];
+        edgeR[4] = firstTriangle[5];
+        validEdge[4] = 1;
+        edgeL[5] = firstTriangle[4];
+        edgeR[5] = firstTriangle[5];
+        validEdge[5] = 1;
+        //musim zapisat existujuci 3. 3uh z danych 3 bodov do polí
+        validPoint[firstTriangle[6]] = -1;
+        validPoint[firstTriangle[7]] = -1; //set used/invalid
+        validPoint[firstTriangle[8]] = -1;
+        
+        edgeL[6] = firstTriangle[6];
+        edgeR[6] = firstTriangle[7];
+        validEdge[6] = 1;
+        edgeL[7] = firstTriangle[6];
+        edgeR[7] = firstTriangle[8];
+        validEdge[7] = 1;
+        edgeL[8] = firstTriangle[7];
+        edgeR[8] = firstTriangle[8];
+        validEdge[8] = 1;
         
         //todo: nezabudnut na konci pripocitat do arrayu face nakoniec prvy 3uh
         //...
@@ -162,9 +187,9 @@ class CLtriangulation {
         memObjects[5] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_float * 3*3*n, eL, null);
         memObjects[6] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_float * 3*3*n, eR, null);
         memObjects[7] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_float * 3*3*n, valE, null);
-        memObjects[8] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 4*n, null, null);
-        memObjects[9] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 4*n, null, null);
-        memObjects[10] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 4*n, null, null);
+        memObjects[8] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 7*n, null, null);
+        memObjects[9] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 7*n, null, null);
+        memObjects[10] = clCreateBuffer(context,CL_MEM_READ_WRITE,  Sizeof.cl_float * 7*n, null, null);
         memObjects[11] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_int * 2, ids, null);
         memObjects[12] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_int, idE, null);
         memObjects[13] = clCreateBuffer(context,CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,  Sizeof.cl_int, idF, null);
@@ -227,13 +252,13 @@ System.out.println("1read 3 kernel +err:" + clEnqueueReadBuffer);
             3*3*n * Sizeof.cl_float, valE, 0, null, null);
         
         clEnqueueReadBuffer(commandQueue, memObjects[8], CL_TRUE, 0,
-            4*n * Sizeof.cl_float, fac1, 0, null, null);
+            7*n * Sizeof.cl_float, fac1, 0, null, null);
         
         clEnqueueReadBuffer(commandQueue, memObjects[9], CL_TRUE, 0,
-            4*n * Sizeof.cl_float, fac2, 0, null, null);
+            7*n * Sizeof.cl_float, fac2, 0, null, null);
         
         clEnqueueReadBuffer(commandQueue, memObjects[10], CL_TRUE, 0,
-            4*n * Sizeof.cl_float, fac3, 0, null, null);
+            7*n * Sizeof.cl_float, fac3, 0, null, null);
         
         //read min
         clEnqueueReadBuffer(commandQueue, memObjects[3], CL_TRUE, 0,
@@ -286,7 +311,7 @@ System.out.println(">>"+edgeL[i]+" "+edgeR[i] +" "+ validEdge[i]);
 
         System.out.println(">>"+edges.toString());
         
-        for (int i = 0; i < 4*n; i++) {
+        for (int i = 0; i < 7*n; i++) {
 System.out.println("--"+faceV1[i]+" "+faceV2[i] +" "+ faceV3[i]);
             
             if (faceV1[i] != -1) {

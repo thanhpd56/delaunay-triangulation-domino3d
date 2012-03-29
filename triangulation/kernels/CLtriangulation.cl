@@ -269,8 +269,8 @@ if(gid==0 || gid==1 || gid==2) {wait = 0;}
                 }
             }
             if (edgeJ != -1) {
-//    if (min[edgeJ]*5 > distance( (float3) (x[edgeL[gid]],y[edgeL[gid]],z[edgeL[gid]]) , (float3)(x[edgeJ], y[edgeJ], z[edgeJ])) 
-//     || min[edgeJ]*5 > distance( (float3) (x[edgeR[gid]],y[edgeR[gid]],z[edgeR[gid]]) , (float3)(x[edgeJ], y[edgeJ], z[edgeJ]))   ) 
+    if (min[edgeJ]*5 > distance( (float3) (x[edgeL[gid]],y[edgeL[gid]],z[edgeL[gid]]) , (float3)(x[edgeJ], y[edgeJ], z[edgeJ])) 
+     || min[edgeJ]*5 > distance( (float3) (x[edgeR[gid]],y[edgeR[gid]],z[edgeR[gid]]) , (float3)(x[edgeJ], y[edgeJ], z[edgeJ]))   ) 
                         {
                             //buď dve hrany a skončim, alebo jedna a skončim.
 //                            if (!edgeExist(edgeL[gid], edgeJ, edgeL, edgeR) 
@@ -542,8 +542,8 @@ bool bbb = false;
             
 
             if (edgeJ != -1) {
-//if (min[edgeJ]*5 > distance( (float3) (x[edgeL[gid]],y[edgeL[gid]],z[edgeL[gid]]) , (float3)(x[edgeJ], y[edgeJ], z[edgeJ])) 
-//     || min[edgeJ]*5 > distance( (float3) (x[edgeR[gid]],y[edgeR[gid]],z[edgeR[gid]]) , (float3)(x[edgeJ], y[edgeJ], z[edgeJ]))   )
+if (min[edgeJ]*5 > distance( (float3) (x[edgeL[gid]],y[edgeL[gid]],z[edgeL[gid]]) , (float3)(x[edgeJ], y[edgeJ], z[edgeJ])) 
+     || min[edgeJ]*5 > distance( (float3) (x[edgeR[gid]],y[edgeR[gid]],z[edgeR[gid]]) , (float3)(x[edgeJ], y[edgeJ], z[edgeJ]))   )
                         {
                             validP[edgeJ] = -1;
 //                            //make edges
