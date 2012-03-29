@@ -168,8 +168,8 @@ public class Triangulate {
     private int getRandomPoints(int amount, boolean fromFile) {
         if (!fromFile) {
             for (int i = 0; i < amount; i++) {
-//                point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100)));
-                point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100), 1));
+                point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100)));
+//                point_cloud1.add(new Point(i, (Math.random() * Math.random() * 100), (Math.random() * Math.random() * 100), 1));
 //todo: generovanie nahod v 2D !!!
                 
                 
