@@ -19,9 +19,9 @@ import java.util.Collections;
 public class CLmetrika
 {    
     private int amount;
-//    Point[] point_cloud;
     ArrayList<Point> point_cloud1;
-//    double[] cloud;
+    private long time;
+
 
 
     public CLmetrika(ArrayList point_cloud, int amount) {
@@ -144,6 +144,9 @@ System.out.println("...done");
 //        long local_work_size[] = new long[]{10}; //moze byt aj null ,potom sa sam rozhodne
         long local_work_size[] = null; //moze byt aj null ,potom sa sam rozhodne
         
+
+        long start = System.currentTimeMillis();
+
         for (int j = 0; j <= m; j++) {
             
             clSetKernelArg(kernel, 6, Sizeof.cl_int, Pointer.to(new int[]{j}));
@@ -169,6 +172,9 @@ System.out.println("...done");
             }
             
         }
+        clFinish(commandQueue);
+        long end = System.currentTimeMillis();
+        time = end - start;
 
 
         // Release kernel, program, and memory objects
@@ -234,6 +240,13 @@ System.out.println("return metrika kernel");
             System.exit(1);
             return null;
         }
+    }
+
+    /**
+     * @return the time
+     */
+    public long getTime() {
+        return time;
     }
 }
 

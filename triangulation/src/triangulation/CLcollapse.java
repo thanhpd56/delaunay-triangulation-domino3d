@@ -18,6 +18,7 @@ import java.util.Collections;
 class CLcollapse extends ArrayList {
 
     ArrayList<Point> returnArray = new ArrayList<Point>();
+    private long time;
     
     CLcollapse(
             float tolerance, 
@@ -132,9 +133,17 @@ class CLcollapse extends ArrayList {
         long global_work_size[] = new long[]{n};
         long local_work_size[] = new long[]{1};
         
+        
+        clFinish(commandQueue);
+        long start = System.currentTimeMillis();
         // Execute the kernel
         clEnqueueNDRangeKernel(commandQueue, kernel, 1, null,
             global_work_size, local_work_size, 0, null, null);
+        clFinish(commandQueue);
+        long end = System.currentTimeMillis();
+        time = end - start;
+        
+        
         
         // Read the output data colapsed X
         clEnqueueReadBuffer(commandQueue, memObjects[3], CL_TRUE, 0,
@@ -218,6 +227,13 @@ class CLcollapse extends ArrayList {
      */
     public ArrayList<Point> getReturnArray() {
         return returnArray;
+    }
+
+    /**
+     * @return the time
+     */
+    public long getTime() {
+        return time;
     }
 }
 

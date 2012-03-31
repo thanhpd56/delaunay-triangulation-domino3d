@@ -6,6 +6,8 @@ import java.io.*;
 import static org.jocl.CL.*;
 import org.jocl.*;
 import com.sun.org.apache.bcel.internal.generic.FLOAD;
+import java.lang.management.ManagementFactory;
+import java.net.NetworkInterface;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -17,6 +19,7 @@ class CLtriangulation {
 
     private ArrayList<Edge> edges = new ArrayList<Edge>();
     private ArrayList<Face> face = new ArrayList<Face>();
+    private long time;
     
 //    public CLtriangulation(ArrayList<Edge> edges, 
 //            ArrayList<Face> face, 
@@ -233,18 +236,28 @@ class CLtriangulation {
 //        long global_work_size[] = new long[]{1};
         long local_work_size[] = null; //1 grup sa zrobi, alebo null-spravi kolko on chce
 //        long local_work_size[] = new long[]{1}; //1 grup sa zrobi, alebo null-spravi kolko chce
-System.out.println("executing 3 kernel");
+
+
+
+
+
+        clFinish(commandQueue);
+        long start = System.currentTimeMillis();
         // Execute the kernel
         clEnqueueNDRangeKernel(commandQueue, kernel, 1, null,
             global_work_size, local_work_size, 0, null, null);
-System.out.println("stop 3 kernel");
-  clFinish(commandQueue);
-System.out.println("clFinish 3 kernel");
 
+        clFinish(commandQueue);
+        long end = System.currentTimeMillis();
+        time = end - start;
+        
+        
+        
+        
         // Read the output data
         int clEnqueueReadBuffer = clEnqueueReadBuffer(commandQueue, memObjects[5], CL_TRUE, 0,
                                       3*3*n * Sizeof.cl_float, eL, 0, null, null);
-System.out.println("1read 3 kernel +err:" + clEnqueueReadBuffer);
+System.out.println("read 3 kernel +err:" + clEnqueueReadBuffer);
         clEnqueueReadBuffer(commandQueue, memObjects[6], CL_TRUE, 0,
             3*3*n * Sizeof.cl_float, eR, 0, null, null);
         
@@ -369,6 +382,13 @@ System.out.println("##"+face.toString());
             System.exit(1);
             return null;
         }
+    }
+
+    /**
+     * @return the time used for triangulation
+     */
+    public long getTime() {
+        return time;
     }
     
 }

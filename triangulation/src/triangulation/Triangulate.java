@@ -14,7 +14,10 @@ import java.io.InputStreamReader;
 import java.lang.Math;
 import java.io.PrintStream;
 import java.lang.reflect.Array;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import triangulation.Point;
@@ -48,6 +51,16 @@ public class Triangulate {
     private String file;
 //    private int firstTriangle[] = new int[3];
     private int firstTriangle[] = new int[9];
+//----------
+    long timeGpu = -1;
+    long timeCpu = -1;
+    long timeGpuMetrika = -1;
+    long timeCpuMetrika = -1;
+    long timeGpuCollapse = -1;
+    long timeCpuCollapse = -1;
+    double tolerancia = -1;
+    
+    
     
     /**
      * @param args the command line arguments
@@ -94,8 +107,12 @@ public class Triangulate {
         ui.setStatus2("Spájam blízke body");
         //blizke body spojim podla parametru    (Double) ui.getTolerance().getText()
         if (collapse) {
-//            point_cloud1 = CLcollapse(Double.parseDouble(ui.getTolerance().getText()));
-            point_cloud1 = collapse(Double.parseDouble(ui.getTolerance().getText()));
+            if (ui.isCol()) {
+                point_cloud1 = CLcollapse(Double.parseDouble(ui.getTolerance().getText()));
+            } else {
+                point_cloud1 = collapse(Double.parseDouble(ui.getTolerance().getText()));
+            }
+            tolerancia = Double.parseDouble(ui.getTolerance().getText());
 //            System.out.println("colapse tolerance " + Double.parseDouble(ui.getTolerance().getText()));
             System.out.println("colapse >> amount " + point_cloud1.size() );
             amount = point_cloud1.size();
@@ -109,20 +126,27 @@ public class Triangulate {
         if (startRandom) {
             // zvolime si nahodne startovaci bod  ---alebo
             startPointID = getRandomStartPoint(amount);
-            getOptimalStartPoint(sort, point_cloud1, amount);
-//            System.out.println("first point: " + point_cloud[startPointID]);
+            if (ui.isMet()) {
+                CLgetOptimalStartPoint(sort, point_cloud1, amount);
+            } else {
+                getOptimalStartPoint(sort, point_cloud1, amount);
+            }
             System.out.println("first RND point: " + point_cloud1.get(startPointID));
         } else {
             //--- alebo... zvolime si optimalny bod podla metriky
             //parameter 1-ked chcem sortovat pole pointov,0-nechcem nic sortovat
-            startPointID = getOptimalStartPoint(sort, point_cloud1, amount);
+            if (ui.isMet()) {
+                startPointID = CLgetOptimalStartPoint(sort, point_cloud1, amount);
+            } else {
+                startPointID = getOptimalStartPoint(sort, point_cloud1, amount);
+            }
             System.out.println("first OPTIMAL point: " + point_cloud1.get(startPointID));
         }
 
         
         ui.setStatus2("Tvorba prvého trojuholníka");
-        // spravime prvy trojuholnik!!!
-        if (amount >= 3) {
+        // spravime prvye 3 trojuholniky!!!
+        if (amount >= 9) {
             firstTriangle(startPointID);
         } else {
             System.out.println("nedostatocny pocet bodov pre triangulaciu. KONCIM!");
@@ -137,11 +161,19 @@ public class Triangulate {
         b - circumcircles
         c - spirala, pozerat +1 bod hore, dole, doprava...
          */
-//        triangulate();  //ostatne 3uholniky
-        CLtriangulate();  //ostatne 3uholniky cez OenCL
+        if (ui.isTri()) {
+            CLtriangulate();  //ostatne 3uholniky cez OenCL 
+        } else {
+            long start = System.currentTimeMillis();
+            triangulate();  //ostatne 3uholniky
+            long end = System.currentTimeMillis();
+            timeCpu = end - start;
+        }
         
-        //dokreslime konvexne trojuholniky po krajoch v 2D (mozme, NEMUSIME)
-//        konvex();
+
+        
+
+        
         
         
         //otvorime si okienko a nakreslim co to vlastne vyrobilo
@@ -150,7 +182,14 @@ public class Triangulate {
         gui.Kresli(point_cloud1, edges1, circlesA);
         
         //export do wavefront OBJ
-        export();
+        if (ui.isOBJ()) exportOBJ();
+        //export do wavefront WRL
+        if (ui.isWRL()) exportWRL();
+        //export do wavefront ASE
+        if (ui.isASE()) exportASE();
+        
+        //statistika
+        stat();
         
         //vypocet uplnosti povrchu modelu
         System.out.println("Úplnosť povrchu modelu: "+ui.jProgressBar1.getValue()+" %");
@@ -685,6 +724,7 @@ public class Triangulate {
 //        edges1.addAll(tri.getEdges());
         edges1=(tri.getEdges());
         face.addAll(tri.getFace());
+        timeGpu = tri.getTime();
     }
     
 
@@ -975,16 +1015,44 @@ public class Triangulate {
 
     /**
  * vyriesi problem optimalneho startu
+ * daj mi optimalny bod! Iba vypocita MIN vzdialenost a AVG vzdialenost medzi bodmi a vrati najvyhodnejsi bod, co je stale 1.BOD
+ * musime zavolat metriku.getPoint inak nevytvori hodnoty AVG a MIN pre body
  * @param amount
  * @param point_cloud
  * @return
  */
     private int getOptimalStartPoint(boolean parameter, ArrayList pc, int amount) {
+        long start = System.currentTimeMillis();
         metrika m = new metrika(pc, amount);
-//        CLmetrika m = new CLmetrika(pc, amount);
-//daj mi optimalny bod = pozor! on iba vypocita MIN vzdialenost a AVG vzdialenost medzi bodmi a vrati najvyhodnejsi bod, co je stale 1.BOD
-//musime zavolat metriku.getPoint inak nevytvori hodnoty AVG a MIN pre body
         int i = m.getPoint();
+        long end = System.currentTimeMillis();
+        timeCpuMetrika = end - start;
+
+//zorad pole podla ... toho co je v      public int compareTo(Object obj) {
+        if (parameter) { //parameter = sort ano/nie
+System.out.println("befor sort"+point_cloud1.toString());
+            point_cloud1 = m.sort();
+System.out.println("after sort"+point_cloud1.toString());
+            return 0;  //najvyhodnejsi je navrchu listu, preto netreba nam uz pouzit ret i;
+        }
+
+System.out.println("NO sort"+point_cloud1.toString());
+        return i;
+    }
+    
+    /**
+ * vyriesi problem optimalneho startu prostrednictvom GPU
+ * daj mi optimalny bod! Iba vypocita MIN vzdialenost a AVG vzdialenost medzi bodmi a vrati najvyhodnejsi bod, co je stale 1.BOD
+ * musime zavolat metriku.getPoint inak nevytvori hodnoty AVG a MIN pre body
+ * @param amount
+ * @param point_cloud
+ * @return
+ */
+    private int CLgetOptimalStartPoint(boolean parameter, ArrayList pc, int amount) {
+        CLmetrika m = new CLmetrika(pc, amount);
+        int i = m.getPoint();
+        timeGpuMetrika = m.getTime();
+
 //zorad pole podla ... toho co je v      public int compareTo(Object obj) {
         if (parameter) { //parameter = sort ano/nie
 System.out.println("befor sort"+point_cloud1.toString());
@@ -1038,10 +1106,12 @@ System.out.println("NO sort"+point_cloud1.toString());
 //        throw new UnsupportedOperationException("do not use");
 //        
         System.out.println("CL collapse: tolerance "+tol);
-        ArrayList<Point> points = new CLcollapse((float)tol, point_cloud1, amount).getReturnArray();
+        CLcollapse col = new CLcollapse((float)tol, point_cloud1, amount);
+        ArrayList<Point> points = col.getReturnArray();
         if (points == null) {
             System.out.println("CL ERROR, point clound returns NULL");
         }
+        timeGpuCollapse = col.getTime();
         return  points;
     }
     
@@ -1054,6 +1124,7 @@ System.out.println("NO sort"+point_cloud1.toString());
         ArrayList<Point> ppc = new ArrayList<Point>(); 
         Point[] ppp = new Point[point_cloud1.size()];
 
+long start = System.currentTimeMillis();
 System.out.println("a>>>>" + point_cloud1.size() + "<<<" + point_cloud1.toString());
         
         for (int i = 0; i < point_cloud1.size(); i++) {
@@ -1083,21 +1154,22 @@ System.out.println("a>>>>" + point_cloud1.size() + "<<<" + point_cloud1.toString
             }
         }
 System.out.println("b>>>>" + ppc.size() + "X"+j + "<<<" + ppc.toString());
-        
+long end = System.currentTimeMillis();
+timeCpuCollapse = end - start;
         return ppc;
     }
 
     /**
-     * export to OBJ
+     * export to OBJ file format
      */
-    private void export()  {
+    private void exportOBJ()  {
 //        Point p;
-        ui.setStatus2("Ukladanie bodov do súboru");
+        ui.setStatus2("Ukladanie bodov do OBJ súboru");
         
-        FileWriter file = null;
+        FileWriter ffile = null;
         try {
-            file = new FileWriter("mesh.obj");
-            BufferedWriter out = new BufferedWriter(file);
+            ffile = new FileWriter("mesh.obj");
+            BufferedWriter out = new BufferedWriter(ffile);
             out.write("\n # Simple Wavefront OBJ file ");
             out.write("\n # Triangulation algorithm of Boris Nikolaevich Delaunay, code by Dominik Januvka. 2011-2012 \n");
             //export
@@ -1129,7 +1201,7 @@ System.out.println("b>>>>" + ppc.size() + "X"+j + "<<<" + ppc.toString());
             Logger.getLogger(Triangulate.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
-                file.close();
+                ffile.close();
             } catch (IOException ex) {
                 Logger.getLogger(Triangulate.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1137,6 +1209,140 @@ System.out.println("b>>>>" + ppc.size() + "X"+j + "<<<" + ppc.toString());
 //        System.out.println("V "+point_cloud1.size());
 //        System.out.println("F "+face.size());
 //        System.out.println("E "+edges1.size());
+    }
+    
+    /**
+     * export to WRL file format
+     * http://www.wiley.com/legacy/compbooks/vrml2sbk/ch13/13fig13.htm
+     */
+    private void exportWRL()  {
+//        Point p;
+        ui.setStatus2("Ukladanie bodov do WRL súboru");
+        
+        FileWriter ffile = null;
+        try {
+            ffile = new FileWriter("mesh.wrl");
+            BufferedWriter out = new BufferedWriter(ffile);
+            out.write("\n # VRML V2.0 utf8 ");
+            out.write("\n # Triangulation algorithm of Boris Nikolaevich Delaunay, code by Dominik Januvka. 2011-2012 \n");
+            //export
+            
+            //Vertex data
+            out.write("\n Shape {\n    }\n    geometry IndexedFaceSet {\n        coord Coordinate {\n            point [");
+            for (int i = 0; i < point_cloud1.size(); i++) {
+                out.write("\n                " + point_cloud1.get(i).getX() + " "+ point_cloud1.get(i).getY() + " "+ point_cloud1.get(i).getZ() + "," );
+            }
+            out.write("\n            ]\n        }\n        coordIndex [");
+            
+            //Faces
+            for (int i = 0; i < face.size(); i++) {
+                out.write("\n            " + face.get(i).x +", "+face.get(i).y+", "+face.get(i).z+", -1," ); //todo: vrati ID pointov / neviem ci to je dobre?
+            }
+            out.write("\n        ]\n    }\n}");
+            
+            //koniec
+            out.close();
+            System.out.println("EXPORT: Váš súbor bol úspešne zapísaný");
+            ui.setStatus2("EXPORT: Váš súbor bol úspešne zapísaný");
+        } catch (IOException ex) {
+            Logger.getLogger(Triangulate.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                ffile.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Triangulate.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    /**
+     * export to ASE file format
+     * http://wiki.beyondunreal.com/Legacy:ASE_File_Format
+     */
+    private void exportASE()  {
+        ui.setStatus2("Ukladanie bodov do ASE súboru");
+        
+        FileWriter ffile = null;
+        try {
+            ffile = new FileWriter("mesh.ase");
+            BufferedWriter out = new BufferedWriter(ffile);
+            out.write("\n *COMMENT \"AsciiExport Version \" ");
+            out.write("\n *COMMENT Triangulation algorithm of Boris Nikolaevich Delaunay, code by Dominik Januvka. 2011-2012 \n");
+            out.write("\n *GEOMOBJECT { \n 	*NODE_NAME \"mesh\" \n	*MESH { \n");
+            //export
+
+            out.write("\n		*MESH_NUMVERTEX "+ point_cloud1.size() +" \n		*MESH_VERTEX_LIST {");
+            for (int i = 0; i < point_cloud1.size(); i++) {
+                out.write("\n *MESH_VERTEX "+ i +" " + point_cloud1.get(i).getX() + " "+ point_cloud1.get(i).getY() + " "+ point_cloud1.get(i).getZ() );
+            }
+            out.write("\n 		}\n		*MESH_NUMFACES "+face.size()+" \n		*MESH_FACE_LIST {");
+            
+            //Face
+            for (int i = 0; i < face.size(); i++) {
+                out.write("\n *MESH_FACE    "+i+":    A:    "+face.get(i).x+" B:    "+face.get(i).y+" C:    "+face.get(i).z+" AB:    1 BC:    1 CA:    0	 *MESH_SMOOTHING 1 	*MESH_MTLID 0 "   ); 
+            }
+            out.write("\n			}\n	}\n}");
+            
+            
+            //koniec
+            out.close();
+            System.out.println("EXPORT: Váš súbor bol úspešne zapísaný");
+            ui.setStatus2("EXPORT: Váš súbor bol úspešne zapísaný");
+        } catch (IOException ex) {
+            Logger.getLogger(Triangulate.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                ffile.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Triangulate.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    /**
+     * zapis statistiky
+     */
+    private void stat()  {
+        ui.setStatus2("štatistika");
+        
+        FileWriter ffile = null;
+        try {
+            DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
+            Date date = new Date();
+//            System.out.println(dateFormat.format(date));
+            
+            ffile = new FileWriter("stat"+dateFormat.format(date)+".txt");
+            BufferedWriter out = new BufferedWriter(ffile);
+            out.write("\ntriangulácia: (ms)");
+            out.write("\n GPU čas : "+timeGpu);
+            out.write("\n CPU čas : "+timeCpu);
+            out.write("\n --------------------------");
+            out.write("\nmetrika: (ms)");
+            out.write("\n GPU čas : "+timeGpuMetrika);
+            out.write("\n CPU čas : "+timeCpuMetrika);
+            out.write("\n --------------------------");
+            out.write("\nspojenie bodov: (ms)");
+            out.write("\n GPU čas : "+timeGpuCollapse);
+            out.write("\n CPU čas : "+timeCpuCollapse);
+            out.write("\n --------------------------");
+            out.write("\n model       : "+file);
+            out.write("\n počet bodov : "+amount);
+            out.write("\n\n náhodný štart:"+startRandom);
+            out.write("\n triedenie   : "+sort);
+            out.write("\n tolerancia  : "+tolerancia);
+            out.write("\n konštanta 1 : "+kon1);
+            out.write("\n konštanta 2 : "+kon2);
+            
+            
+            //koniec
+            out.close();
+        } catch (IOException ex) {
+            Logger.getLogger(Triangulate.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                ffile.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Triangulate.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 
 }

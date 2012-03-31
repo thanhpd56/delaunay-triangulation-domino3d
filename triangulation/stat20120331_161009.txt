@@ -1,0 +1,21 @@
+
+triangulácia:
+ GPU čas : 5
+ CPU čas : -1
+ --------------------------
+metrika:
+ GPU čas : -1
+ CPU čas : 2
+ --------------------------
+spojenie bodov:
+ GPU čas : -1
+ CPU čas : -1
+ --------------------------
+ model       : null
+ počet bodov : 10
+
+ náhodný štart:false
+ triedenie   : false
+ tolerancia  : 0.0
+ konštanta 1 : 12
+ konštanta 2 : 5
