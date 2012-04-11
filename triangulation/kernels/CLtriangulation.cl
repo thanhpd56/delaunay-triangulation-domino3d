@@ -208,15 +208,9 @@ if(gid==0 || gid==1 || gid==2) {wait = 0;}
             }
         counter++;
         
-
-//        if(validE[gid]==1) 
     }
 
-//    if(exx == 1) return;
-    
-//validP[gid]=-1;
-//validE[gid]=1;
-//edgeL[gid]=2;
+
 
 
 

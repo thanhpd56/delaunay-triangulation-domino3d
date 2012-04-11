@@ -1,0 +1,23 @@
+
+device: CPU
+
+triangulácia: (ms)
+ GPU čas : -1
+ CPU čas : 1909293
+ --------------------------
+metrika: (ms)
+ GPU čas : -1
+ CPU čas : 2536
+ --------------------------
+spojenie bodov: (ms)
+ GPU čas : -1
+ CPU čas : -1
+ --------------------------
+ model       : C:\Users\Domino\Desktop\triangulation26.3\hh2.OBJ
+ počet bodov : 8784
+
+ náhodný štart:false
+ triedenie   : false
+ tolerancia  : -1.0
+ konštanta 1 : 12
+ konštanta 2 : 5

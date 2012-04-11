@@ -1,20 +1,20 @@
 package triangulation;
 
 import java.util.ArrayList;
-import sun.java2d.loops.DrawRect;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Image;
-import javax.swing.JPanel;
-import sun.java2d.loops.DrawLine;
+//import sun.java2d.loops.DrawRect;
+//import java.awt.Dimension;
+//import java.awt.Graphics;
+//import java.awt.Image;
+//import javax.swing.JPanel;
+//import sun.java2d.loops.DrawLine;
 import java.awt.*;
-import java.awt.geom.*;
-import javax.swing.*;
+//import java.awt.geom.*;
+//import javax.swing.*;
 
 
 
 /**
- *
+ * Zobrazenie bodov v 2D. Vypnute.
  * @author Domino
  */
 public class Show extends javax.swing.JFrame {

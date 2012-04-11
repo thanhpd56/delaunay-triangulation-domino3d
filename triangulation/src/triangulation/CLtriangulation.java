@@ -1,3 +1,7 @@
+/*
+ * Vypocet triangulacie pomocou GPGPU
+ * previazane pouzitim JOCL - Java bindings for OpenCL
+ */
 package triangulation;
 
 import java.util.ArrayList;
@@ -12,7 +16,8 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
- *
+ *  Vypocet triangulacie pomocou GPGPU
+ * previazane pouzitim JOCL - Java bindings for OpenCL
  * @author Domino
  */
 class CLtriangulation {
@@ -20,6 +25,7 @@ class CLtriangulation {
     private ArrayList<Edge> edges = new ArrayList<Edge>();
     private ArrayList<Face> face = new ArrayList<Face>();
     private long time;
+    private String dev;
     
 //    public CLtriangulation(ArrayList<Edge> edges, 
 //            ArrayList<Face> face, 
@@ -251,7 +257,13 @@ class CLtriangulation {
         long end = System.currentTimeMillis();
         time = end - start;
         
-        
+        //  device name
+        long size[] = new long[1];
+        clGetDeviceInfo(devices[deviceIndex], CL_DEVICE_NAME, 0, null, size);
+        byte bb[] = new byte[(int)size[0]];
+        clGetDeviceInfo(devices[deviceIndex], CL_DEVICE_NAME, bb.length, Pointer.to(bb), null);
+        String ss = new String(bb);
+        dev = ss;
         
         
         // Read the output data
@@ -389,6 +401,13 @@ System.out.println("##"+face.toString());
      */
     public long getTime() {
         return time;
+    }
+
+    /**
+     * @return the dev
+     */
+    public String getDev() {
+        return dev;
     }
     
 }

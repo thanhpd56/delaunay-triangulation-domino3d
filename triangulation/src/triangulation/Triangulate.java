@@ -1,9 +1,12 @@
+/*
+ * Hlavna trieda triangulacie spustajuca vsetky metody.
+ */
 package triangulation;
 
-import com.sun.org.apache.bcel.internal.generic.RETURN;
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
-import java.applet.*;
-import java.awt.*;
+//import com.sun.org.apache.bcel.internal.generic.RETURN;
+//import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
+//import java.applet.*;
+//import java.awt.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
@@ -12,53 +15,56 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.Math;
-import java.io.PrintStream;
-import java.lang.reflect.Array;
+//import java.io.PrintStream;
+//import java.lang.reflect.Array;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import triangulation.Point;
+//import triangulation.Point;
 import java.util.Random;
-import sun.org.mozilla.javascript.internal.ast.Jump;
+
 
 
 
 /**
+ * * Hlavna trieda triangulacie spustajuca vsetky metody.
  * @author Dominik Januvka 2011
  */
 public class Triangulate {
     
-//----->>  interaface  //nemali by byt publit :-|
-    public int amount = 20; //kolko bodov chcem/mam v poli
-    public boolean startRandom ;//= true; //nahodny start bod, false= optimalny start bod
-    public boolean collapse ;//= true; //nahodny start bod, false= optimalny start bod
-    public boolean sort ;  //sort podla metriky, 1-ano, 0-nie-nesortuj nic
-    UIfc ui;
-    int loading = 1;
+//----->>  interaface
+    private int amount = 20;        //kolko bodov chcem/mam v poli
+    private boolean startRandom ;   //= true; //nahodny start bod, false= optimalny start bod
+    private boolean collapse ;      //= true; //nahodny start bod, false= optimalny start bod
+    private boolean sort ;          //sort podla metriky, 1-ano, 0-nie-nesortuj nic
+    private UIfc ui;
+    private int loading = 1;
 //-----<<  interaface
     
     ArrayList<Circle> circlesA = new ArrayList<Circle>();
     ArrayList<Edge> convexA = new ArrayList<Edge>();
     ArrayList<Edge> edges1 = new ArrayList<Edge>();
     ArrayList<Point> point_cloud1 = new ArrayList<Point>();  //array of points2d  // ID, X, Y, used(bool)
-    ArrayList<Face> face = new ArrayList<Face>();  //array of faces
-    private int kon1 = 12; //konstanta 1 pri vybere vhodnosti 3uh.
-    private int kon2 = 5; //konstanta 2 pri maximalnej vzdialenosti
+    ArrayList<Face> face = new ArrayList<Face>();           //array of faces
+    private int kon1 = 12;  //konstanta 1 pri vybere vhodnosti 3uh.
+    private int kon2 = 5;   //konstanta 2 pri maximalnej vzdialenosti
     private boolean fromFile;
     private String file;
 //    private int firstTriangle[] = new int[3];
     private int firstTriangle[] = new int[9];
-//----------
-    long timeGpu = -1;
-    long timeCpu = -1;
-    long timeGpuMetrika = -1;
-    long timeCpuMetrika = -1;
-    long timeGpuCollapse = -1;
-    long timeCpuCollapse = -1;
-    double tolerancia = -1;
+
+//---------- štatistiky
+    private long timeGpu = -1;
+    private long timeCpu = -1;
+    private long timeGpuMetrika = -1;
+    private long timeCpuMetrika = -1;
+    private long timeGpuCollapse = -1;
+    private long timeCpuCollapse = -1;
+    private double tolerancia = -1;
+    private String deviceName = null;
     
     
     
@@ -97,6 +103,13 @@ public class Triangulate {
         if (fromFile && file == null) {
             System.out.println("Nebol vybraty ziaden subor! Koncim");
             System.exit(0); //exit on exit
+        }
+                
+        if (amount >= 9 ) {
+        } else {
+            System.out.println("nedostatocny pocet bodov pre triangulaciu. KONCIM!");
+            System.exit(0);
+            return ;
         }
         
         ui.setStatus2("Načítavanie bodov");
@@ -146,7 +159,7 @@ public class Triangulate {
         
         ui.setStatus2("Tvorba prvého trojuholníka");
         // spravime prvye 3 trojuholniky!!!
-        if (amount >= 9) {
+        if (amount >= 9 ) {
             firstTriangle(startPointID);
         } else {
             System.out.println("nedostatocny pocet bodov pre triangulaciu. KONCIM!");
@@ -170,16 +183,13 @@ public class Triangulate {
             timeCpu = end - start;
         }
         
-
-        
-
         
         
         
-        //otvorime si okienko a nakreslim co to vlastne vyrobilo
-        Show gui = new Show();
-        gui.setVisible(true);
-        gui.Kresli(point_cloud1, edges1, circlesA);
+//        //otvorime si okienko a nakreslim co to vlastne vyrobilo
+//        Show gui = new Show();
+//        gui.setVisible(true);
+//        gui.Kresli(point_cloud1, edges1, circlesA);
         
         //export do wavefront OBJ
         if (ui.isOBJ()) exportOBJ();
@@ -725,6 +735,7 @@ public class Triangulate {
         edges1=(tri.getEdges());
         face.addAll(tri.getFace());
         timeGpu = tri.getTime();
+        deviceName = tri.getDev();
     }
     
 
@@ -843,7 +854,6 @@ public class Triangulate {
      */
     private Circle circumcircle(Point p1,Point p2,Point p3) {
         double polomer = -1; 
-        double [] zlomok = new double[3];
         double [] AC = new double[3];
         double [] BC = new double[3];
         Point acxbc;
@@ -853,7 +863,6 @@ public class Triangulate {
 
         polomer = crossProduct1(p1, p2, p3); //check colinear points
         if (polomer != 0.0){
-//                double ac, bc;
             
             AC[0] = p1.getX()-p3.getX() ;
             AC[1] = p1.getY()-p3.getY() ;
@@ -864,10 +873,6 @@ public class Triangulate {
             
             ac2 = AC[0]*AC[0] + AC[1]*AC[1] + AC[2]*AC[2];
             bc2 = BC[0]*BC[0] + BC[1]*BC[1] + BC[2]*BC[2];
-            
-//            AC[0] = ac2*BC[0] - bc2*AC[0];
-//            AC[1] = ac2*BC[1] - bc2*AC[1];
-//            AC[2] = ac2*BC[2] - bc2*AC[2];
 
             acxbc = vektorovySucin(new Point(AC[0], AC[1], AC[2]), new Point(BC[0], BC[1], BC[2]));
             spodok = (acxbc.getX()*acxbc.getX() + acxbc.getY()*acxbc.getY() + acxbc.getZ()*acxbc.getZ())*2;
@@ -877,60 +882,8 @@ public class Triangulate {
             circleY = acxbc.getY()/spodok + p3.getY();
             circleZ = acxbc.getZ()/spodok + p3.getZ();
             
-//
-//              a2 = p1.getX() * p1.getX() + p1.getY() * p1.getY() + p1.getZ() * p1.getZ();
-//              b2 = p2.getX() * p2.getX() + p2.getY() * p2.getY() + p2.getZ() * p2.getZ();
-//              c2 = p3.getX() * p3.getX() + p3.getY() * p3.getY() + p3.getZ() * p3.getZ();
-////http://upload.wikimedia.org/wikipedia/en/math/5/b/7/5b79fdc6617ad70147d4959235be7082.png
-////http://en.wikipedia.org/wiki/Tetrahedron
-//                zlomok[0] = vektorovySucin(p2, p3).getX()*a2 + vektorovySucin(p3, p1).getX()*b2 + vektorovySucin(p1, p2).getX()*c2;
-//                zlomok[1] = vektorovySucin(p2, p3).getY()*a2 + vektorovySucin(p3, p1).getY()*b2 + vektorovySucin(p1, p2).getY()*c2;
-//                zlomok[2] = vektorovySucin(p2, p3).getZ()*a2 + vektorovySucin(p3, p1).getZ()*b2 + vektorovySucin(p1, p2).getZ()*c2;
-//                
-//                ooo = 2*p1.getX()*vektorovySucin(p2, p3).getX() + 2*p1.getY()*vektorovySucin(p2, p3).getY() + 2*p1.getZ()*vektorovySucin(p2, p3).getZ() ;
-                
-//              circleX = zlomok[0]/ooo; 
-                if(circleX.equals(Double.NaN)) System.out.println("X NaN "+p1.toString()+p2.toString()+p3.toString());
-//              circleY = zlomok[1]/ooo; 
-                if(circleY.equals(Double.NaN)) System.out.println("Y NaN "+p1.toString()+p2.toString()+p3.toString());
-//                circleZ = zlomok[2]/ooo; 
-                if(circleZ.equals(Double.NaN)) System.out.println("Z NaN "+p1.toString()+p2.toString()+p3.toString());
-
-                polomer = distance(new Point( circleX, circleY, circleZ), p1); //Polomer
-  
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-//                //kontrola ci je bod xyz v rovine danej bodmi p1,p2,p3
-//                //param rovnica
-//                vektorAB [0] = p2.getX()-p1.getX(); //t
-//                vektorAB [1] = p2.getY()-p1.getY(); //t
-//                vektorAB [2] = p2.getZ()-p1.getZ(); //t
-//                vektorAC [0] = p3.getX()-p1.getX(); //s
-//                vektorAC [1] = p3.getY()-p1.getY(); //s
-//                vektorAC [2] = p3.getZ()-p1.getZ(); //s
-////                p1.getX()
-//                double s = (circleZ - p1.getZ() - (vektorAB[2]*(circleY-p1.getY()))/vektorAB[1] )/(vektorAC[2]-vektorAC[2]*vektorAC[1]/vektorAB[1] );
-//                double t = (circleY - p1.getY() - s*vektorAC[1])/vektorAB[1] ;
-//                double xxx = (p1.getX() + t*vektorAB[0] + s*vektorAC[0]);
-//                if (circleX == xxx) {
-//                    System.out.println("lezi v rovine! "+p1.toString()+p2.toString()+p3.toString());
-//                }else{
-//                    System.out.println("lezi v rovine? "+circleX+"=?="+xxx);
-//                }
-                
-                
-                
-                
-            }
-
+            polomer = distance(new Point( circleX, circleY, circleZ), p1); //Polomer
+        }
         return new Circle(polomer,circleX,circleY,circleZ);
     }
 
@@ -969,13 +922,6 @@ public class Triangulate {
         b2 = p3.getY() - p1.getY() ;
         b3 = p3.getZ() - p1.getZ() ;
         
-//      u1 =  p2.getX() - p1.getX();
-//      v1 =  p2.getY() - p1.getY();
-//      u2 =  p3.getX() - p1.getX();
-//      v2 =  p3.getY() - p1.getY();
-
-//      return u1 * v2 - u2 * v1;
-//        System.out.println("_____" + (a2*b3-a3*b2) +"_"+ (a3*b1-a1*b3) +"_"+ (a1*b2-a2*b1));
         double ret = a2*b3-a3*b2 + a3*b1-a1*b3 + a1*b2-a2*b1;
         return ret;
     }
@@ -1206,9 +1152,6 @@ timeCpuCollapse = end - start;
                 Logger.getLogger(Triangulate.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-//        System.out.println("V "+point_cloud1.size());
-//        System.out.println("F "+face.size());
-//        System.out.println("E "+edges1.size());
     }
     
     /**
@@ -1301,7 +1244,6 @@ timeCpuCollapse = end - start;
      * zapis statistiky
      */
     private void stat()  {
-        ui.setStatus2("štatistika");
         
         FileWriter ffile = null;
         try {
@@ -1311,7 +1253,12 @@ timeCpuCollapse = end - start;
             
             ffile = new FileWriter("stat"+dateFormat.format(date)+".txt");
             BufferedWriter out = new BufferedWriter(ffile);
-            out.write("\ntriangulácia: (ms)");
+            if (deviceName==null) {
+                out.write("\ndevice: CPU");
+            } else {
+                out.write("\ndevice: "+deviceName);
+            }
+            out.write("\n\ntriangulácia: (ms)");
             out.write("\n GPU čas : "+timeGpu);
             out.write("\n CPU čas : "+timeCpu);
             out.write("\n --------------------------");

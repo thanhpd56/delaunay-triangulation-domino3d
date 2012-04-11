@@ -1,0 +1,22 @@
+
+device: CPU
+triangulácia: (ms)
+ GPU čas : -1
+ CPU čas : 95189
+ --------------------------
+metrika: (ms)
+ GPU čas : -1
+ CPU čas : 476
+ --------------------------
+spojenie bodov: (ms)
+ GPU čas : -1
+ CPU čas : -1
+ --------------------------
+ model       : C:\Users\Domino\Desktop\triangulation26.3\tea2.obj
+ počet bodov : 2081
+
+ náhodný štart:false
+ triedenie   : false
+ tolerancia  : -1.0
+ konštanta 1 : 12
+ konštanta 2 : 5

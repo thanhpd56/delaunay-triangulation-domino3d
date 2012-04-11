@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
- *
+ * Vypocet metriky bodov
  * @author Domino
  */
 public class metrika {

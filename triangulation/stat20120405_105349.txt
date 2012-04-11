@@ -1,0 +1,23 @@
+
+device: CPU
+
+triangulácia: (ms)
+ GPU čas : -1
+ CPU čas : -1
+ --------------------------
+metrika: (ms)
+ GPU čas : -1
+ CPU čas : 78704
+ --------------------------
+spojenie bodov: (ms)
+ GPU čas : -1
+ CPU čas : -1
+ --------------------------
+ model       : null
+ počet bodov : 50000
+
+ náhodný štart:false
+ triedenie   : false
+ tolerancia  : -1.0
+ konštanta 1 : 12
+ konštanta 2 : 5

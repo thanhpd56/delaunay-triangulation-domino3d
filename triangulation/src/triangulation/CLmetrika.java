@@ -1,5 +1,6 @@
 /*
- * JOCL - Java bindings for OpenCL
+ * Vypocet metriky pre body pomocou GPGPU
+ * previazane pouzitim JOCL - Java bindings for OpenCL
  */
 package triangulation;
 
@@ -13,7 +14,8 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
- * A small JOCL.
+ * Vypocet metriky pre body pomocou GPGPU
+ * previazane pouzitim JOCL - Java bindings for OpenCL
  * @author Domino
  */
 public class CLmetrika

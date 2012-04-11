@@ -1,7 +1,10 @@
+/*
+ * Trieda Definicie polygonu
+ */
 package triangulation;
 
 /**
- * face ma tri vrcholy: x, y, z
+ *  Trieda Definicie polygonu face ma tri vrcholy: x, y, z
  * @author Domino
  */
 class Face {

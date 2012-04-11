@@ -1,9 +1,13 @@
+/*
+ * Trieda Definicie kruznice opisanej
+ */
 package triangulation;
 
 /**
- *
- * @author Domino
+ * Trieda Definicie kruznice opisanej
  * Circle - kruznica, opisana trojuholniku, ma stred S a polomer
+ * @author Domino
+ * 
  */
 public class Circle {
     private double x;

@@ -1,8 +1,11 @@
+/*
+ * Trieda Definicie hrany
+ */
 package triangulation;
 
 
 /**
- *
+ * Trieda Definicie hrany
  * @author Domino
  */    
 

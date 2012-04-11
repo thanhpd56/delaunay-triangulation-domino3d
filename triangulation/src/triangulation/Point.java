@@ -1,7 +1,10 @@
+/*
+ * Trieda Definicie bodu
+ */
 package triangulation;
 
 /**
- *
+ *Trieda Definicie bodu
  * @author Domino
  */
 //2D point

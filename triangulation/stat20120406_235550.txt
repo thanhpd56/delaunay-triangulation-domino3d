@@ -1,0 +1,23 @@
+
+device: CPU
+
+triangulácia: (ms)
+ GPU čas : -1
+ CPU čas : 1732655
+ --------------------------
+metrika: (ms)
+ GPU čas : 7273
+ CPU čas : -1
+ --------------------------
+spojenie bodov: (ms)
+ GPU čas : -1
+ CPU čas : -1
+ --------------------------
+ model       : C:\Users\Domino\Desktop\triangulation26.3\pk 2 stena.obj
+ počet bodov : 16083
+
+ náhodný štart:true
+ triedenie   : true
+ tolerancia  : -1.0
+ konštanta 1 : 6
+ konštanta 2 : 12

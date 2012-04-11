@@ -1,3 +1,7 @@
+/*
+ * Vypocet spojenia bodov pomocou GPGPU
+ * previazane pouzitim JOCL - Java bindings for OpenCL
+ */
 package triangulation;
 
 import java.io.BufferedReader;
@@ -12,7 +16,8 @@ import java.util.Collections;
 
 
 /**
- *
+ * Vypocet spojenia bodov pomocou GPGPU
+ * previazane pouzitim JOCL - Java bindings for OpenCL
  * @author Domino
  */
 class CLcollapse extends ArrayList {
